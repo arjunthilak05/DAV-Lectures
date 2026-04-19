@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Data Science Basics — From Raw Data to Insights (Titanic Dataset)</title>
+<title>Data Visualization &amp; EDA — Turning Numbers into Stories (Titanic Continued)</title>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --data-blue:#3b82f6;--data-sky:#0ea5e9;
-  --load-orange:#f97316;--load-amber:#f59e0b;
-  --clean-green:#10b981;--clean-teal:#14b8a6;
-  --analyze-purple:#8b5cf6;--analyze-pink:#ec4899;
-  --viz-rose:#f43f5e;
+  --chart-blue:#3b82f6;--chart-sky:#0ea5e9;
+  --plt-orange:#f97316;--plt-amber:#f59e0b;
+  --sns-green:#10b981;--sns-teal:#14b8a6;
+  --eda-purple:#8b5cf6;--eda-pink:#ec4899;
+  --insight-rose:#f43f5e;
   --bg:#0f1117;--bg2:#161b27;--text:#e8eaf0;--muted:#8892a4;
   --card:rgba(255,255,255,0.04);--radius:16px;
 }
@@ -20,99 +20,88 @@ html{scroll-behavior:smooth;}
 body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;}
 
 .hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px;
-  background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(59,130,246,0.18) 0%,transparent 70%),
-             radial-gradient(ellipse 50% 40% at 80% 90%,rgba(16,185,129,0.12) 0%,transparent 60%),var(--bg);
+  background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(249,115,22,0.18) 0%,transparent 70%),
+             radial-gradient(ellipse 50% 40% at 80% 90%,rgba(139,92,246,0.12) 0%,transparent 60%),var(--bg);
   position:relative;overflow:hidden;}
-.hero-badge{font-family:'Fira Code',monospace;font-size:12px;color:var(--data-blue);background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);padding:6px 16px;border-radius:50px;letter-spacing:2px;margin-bottom:24px;display:inline-block;}
+.hero-badge{font-family:'Fira Code',monospace;font-size:12px;color:var(--plt-orange);background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.3);padding:6px 16px;border-radius:50px;letter-spacing:2px;margin-bottom:24px;display:inline-block;}
 .hero h1{font-family:'Fredoka One',cursive;font-size:clamp(2.2rem,6vw,4.5rem);line-height:1.05;
-  background:linear-gradient(135deg,#fff 15%,var(--data-blue) 30%,var(--load-orange) 50%,var(--clean-green) 70%,var(--analyze-purple) 85%);
+  background:linear-gradient(135deg,#fff 15%,var(--chart-blue) 30%,var(--plt-orange) 50%,var(--sns-green) 70%,var(--eda-purple) 85%);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px;}
-.hero p{font-size:20px;color:var(--muted);max-width:720px;line-height:1.7;margin-bottom:36px;}
+.hero p{font-size:20px;color:var(--muted);max-width:740px;line-height:1.7;margin-bottom:36px;}
 .topic-pills{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:900px;}
 .pill{font-family:'Fira Code',monospace;font-size:13px;padding:8px 18px;border-radius:50px;font-weight:500;border:1px solid;}
-.pill-data{color:var(--data-blue);border-color:rgba(59,130,246,0.5);background:rgba(59,130,246,0.1);}
-.pill-load{color:var(--load-orange);border-color:rgba(249,115,22,0.5);background:rgba(249,115,22,0.1);}
-.pill-clean{color:var(--clean-green);border-color:rgba(16,185,129,0.5);background:rgba(16,185,129,0.1);}
-.pill-analyze{color:var(--analyze-purple);border-color:rgba(139,92,246,0.5);background:rgba(139,92,246,0.1);}
-.pill-viz{color:var(--viz-rose);border-color:rgba(244,63,94,0.5);background:rgba(244,63,94,0.1);}
+.pill-chart{color:var(--chart-blue);border-color:rgba(59,130,246,0.5);background:rgba(59,130,246,0.1);}
+.pill-plt{color:var(--plt-orange);border-color:rgba(249,115,22,0.5);background:rgba(249,115,22,0.1);}
+.pill-sns{color:var(--sns-green);border-color:rgba(16,185,129,0.5);background:rgba(16,185,129,0.1);}
+.pill-eda{color:var(--eda-purple);border-color:rgba(139,92,246,0.5);background:rgba(139,92,246,0.1);}
 .float-code{position:absolute;font-family:'Fira Code',monospace;font-size:11px;color:rgba(255,255,255,0.05);pointer-events:none;user-select:none;white-space:nowrap;}
 .wrapper{max-width:920px;margin:0 auto;padding:0 20px 100px;}
 
 .section-divider{display:flex;align-items:center;gap:14px;margin:70px 0 28px;}
 .section-divider .label{font-family:'Fredoka One',cursive;font-size:26px;white-space:nowrap;}
 .section-divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--accent,rgba(255,255,255,0.1)),transparent);}
-.div-data .label{color:var(--data-blue);}.div-data{--accent:rgba(59,130,246,0.4);}
-.div-load .label{color:var(--load-orange);}.div-load{--accent:rgba(249,115,22,0.4);}
-.div-clean .label{color:var(--clean-green);}.div-clean{--accent:rgba(16,185,129,0.4);}
-.div-analyze .label{color:var(--analyze-purple);}.div-analyze{--accent:rgba(139,92,246,0.4);}
-.div-viz .label{color:var(--viz-rose);}.div-viz{--accent:rgba(244,63,94,0.4);}
+.div-chart .label{color:var(--chart-blue);}.div-chart{--accent:rgba(59,130,246,0.4);}
+.div-plt .label{color:var(--plt-orange);}.div-plt{--accent:rgba(249,115,22,0.4);}
+.div-sns .label{color:var(--sns-green);}.div-sns{--accent:rgba(16,185,129,0.4);}
+.div-eda .label{color:var(--eda-purple);}.div-eda{--accent:rgba(139,92,246,0.4);}
+.div-insight .label{color:var(--insight-rose);}.div-insight{--accent:rgba(244,63,94,0.4);}
 .div-quiz .label{color:#f472b6;}.div-quiz{--accent:rgba(244,114,182,0.4);}
 
 .card{background:var(--card);border:1px solid rgba(255,255,255,0.07);border-radius:var(--radius);padding:28px 32px;margin-bottom:20px;position:relative;overflow:hidden;}
 .card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--stripe,rgba(255,255,255,0.15)),transparent);}
-.card-data::before{--stripe:rgba(59,130,246,0.6);}
-.card-load::before{--stripe:rgba(249,115,22,0.6);}
-.card-clean::before{--stripe:rgba(16,185,129,0.6);}
-.card-analyze::before{--stripe:rgba(139,92,246,0.6);}
-.card-viz::before{--stripe:rgba(244,63,94,0.6);}
+.card-chart::before{--stripe:rgba(59,130,246,0.6);}
+.card-plt::before{--stripe:rgba(249,115,22,0.6);}
+.card-sns::before{--stripe:rgba(16,185,129,0.6);}
+.card-eda::before{--stripe:rgba(139,92,246,0.6);}
+.card-insight::before{--stripe:rgba(244,63,94,0.6);}
 .card h3{font-family:'Fredoka One',cursive;font-size:20px;margin-bottom:12px;}
-.card-data h3{color:var(--data-blue);}
-.card-load h3{color:var(--load-orange);}
-.card-clean h3{color:var(--clean-green);}
-.card-analyze h3{color:var(--analyze-purple);}
-.card-viz h3{color:var(--viz-rose);}
+.card-chart h3{color:var(--chart-blue);}
+.card-plt h3{color:var(--plt-orange);}
+.card-sns h3{color:var(--sns-green);}
+.card-eda h3{color:var(--eda-purple);}
+.card-insight h3{color:var(--insight-rose);}
 .card p,.card li{font-size:17px;line-height:1.75;color:rgba(255,255,255,0.72);}
 .card strong{color:#fff;}
-.tip-box{background:rgba(59,130,246,0.06);border-left:3px solid var(--data-blue);border-radius:8px;padding:13px 16px;margin-top:16px;font-size:16px;color:rgba(255,255,255,0.65);}
-.tip-box-load{background:rgba(249,115,22,0.06);border-left-color:var(--load-orange);}
-.tip-box-clean{background:rgba(16,185,129,0.06);border-left-color:var(--clean-green);}
-.tip-box-analyze{background:rgba(139,92,246,0.06);border-left-color:var(--analyze-purple);}
-.tip-box-viz{background:rgba(244,63,94,0.06);border-left-color:var(--viz-rose);}
+.tip-box{background:rgba(59,130,246,0.06);border-left:3px solid var(--chart-blue);border-radius:8px;padding:13px 16px;margin-top:16px;font-size:16px;color:rgba(255,255,255,0.65);}
+.tip-box-plt{background:rgba(249,115,22,0.06);border-left-color:var(--plt-orange);}
+.tip-box-sns{background:rgba(16,185,129,0.06);border-left-color:var(--sns-green);}
+.tip-box-eda{background:rgba(139,92,246,0.06);border-left-color:var(--eda-purple);}
+.tip-box-insight{background:rgba(244,63,94,0.06);border-left-color:var(--insight-rose);}
 .code-line{font-family:'Fira Code',monospace;background:#0a0f1a;border:1px solid rgba(255,255,255,0.1);padding:14px 18px;border-radius:10px;font-size:15px;color:#7ee787;margin:12px 0;white-space:pre-wrap;line-height:1.6;}
 .output-console{background:#000;border:2px solid rgba(126,231,135,0.3);border-radius:10px;padding:16px;font-family:'Fira Code',monospace;color:#7ee787;font-size:13px;min-height:60px;margin-top:12px;line-height:1.8;overflow-x:auto;}
 
 .demo-box{background:#0a0f1a;border-radius:12px;padding:24px;margin:20px 0;border:2px solid;}
-.box-data{border-color:rgba(59,130,246,0.3);}
-.box-load{border-color:rgba(249,115,22,0.3);}
-.box-clean{border-color:rgba(16,185,129,0.3);}
-.box-analyze{border-color:rgba(139,92,246,0.3);}
+.box-chart{border-color:rgba(59,130,246,0.3);}
+.box-plt{border-color:rgba(249,115,22,0.3);}
+.box-sns{border-color:rgba(16,185,129,0.3);}
+.box-eda{border-color:rgba(139,92,246,0.3);}
 .box-title{font-family:'Fredoka One',cursive;font-size:18px;text-align:center;margin-bottom:20px;}
-.box-data .box-title{color:var(--data-blue);}
-.box-load .box-title{color:var(--load-orange);}
-.box-clean .box-title{color:var(--clean-green);}
-.box-analyze .box-title{color:var(--analyze-purple);}
+.box-chart .box-title{color:var(--chart-blue);}
+.box-plt .box-title{color:var(--plt-orange);}
+.box-sns .box-title{color:var(--sns-green);}
+.box-eda .box-title{color:var(--eda-purple);}
 .btn{padding:12px 32px;border:none;border-radius:50px;font-family:'Nunito',sans-serif;font-size:16px;font-weight:700;cursor:pointer;transition:all 0.3s;margin:8px 4px;}
-.btn-data{background:linear-gradient(135deg,var(--data-blue),var(--data-sky));color:white;}
-.btn-load{background:linear-gradient(135deg,var(--load-orange),var(--load-amber));color:#000;}
-.btn-clean{background:linear-gradient(135deg,var(--clean-green),var(--clean-teal));color:#000;}
-.btn-analyze{background:linear-gradient(135deg,var(--analyze-purple),var(--analyze-pink));color:white;}
+.btn-chart{background:linear-gradient(135deg,var(--chart-blue),var(--chart-sky));color:white;}
+.btn-plt{background:linear-gradient(135deg,var(--plt-orange),var(--plt-amber));color:#000;}
+.btn-sns{background:linear-gradient(135deg,var(--sns-green),var(--sns-teal));color:#000;}
+.btn-eda{background:linear-gradient(135deg,var(--eda-purple),var(--eda-pink));color:white;}
 .btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,0.3);}
 .result-box{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:20px;margin-top:16px;}
-
-/* ── DATA TABLE ── */
-.data-table{width:100%;border-collapse:separate;border-spacing:0;margin:16px 0;border-radius:10px;overflow:hidden;font-size:13px;}
-.data-table th{background:rgba(59,130,246,0.15);color:var(--data-blue);font-weight:700;padding:10px 12px;text-align:left;font-family:'Fira Code',monospace;font-size:12px;border-bottom:2px solid rgba(59,130,246,0.3);}
-.data-table td{padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);}
-.data-table tr:hover td{background:rgba(255,255,255,0.03);}
-.data-table .missing{color:#f85149;font-style:italic;background:rgba(248,81,73,0.08);border-radius:4px;padding:2px 6px;}
-.data-table .fixed{color:#3fb950;font-weight:600;background:rgba(57,185,80,0.08);border-radius:4px;padding:2px 6px;}
-.data-table th.th-load{background:rgba(249,115,22,0.15);color:var(--load-orange);border-bottom-color:rgba(249,115,22,0.3);}
-.data-table th.th-clean{background:rgba(16,185,129,0.15);color:var(--clean-green);border-bottom-color:rgba(16,185,129,0.3);}
-.data-table th.th-analyze{background:rgba(139,92,246,0.15);color:var(--analyze-purple);border-bottom-color:rgba(139,92,246,0.3);}
 
 .concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin:20px 0;}
 .concept-card{background:rgba(255,255,255,0.03);border:2px solid;border-radius:12px;padding:20px;text-align:center;transition:all 0.3s;}
 .concept-card:hover{transform:translateY(-3px);box-shadow:0 8px 25px rgba(0,0,0,0.3);}
 
-.formula-box{background:rgba(0,0,0,0.35);border:2px solid;border-radius:14px;padding:24px;text-align:center;margin:20px 0;}
-.formula-box .formula{font-family:'Fira Code',monospace;font-size:clamp(16px,3.5vw,22px);letter-spacing:1px;margin:12px 0;}
+/* ── MINI CHART PREVIEWS ── */
+.mini-chart{border-radius:10px;overflow:hidden;margin:12px 0;}
+.mini-chart svg{width:100%;height:auto;display:block;}
 
-/* ── KAGGLE BADGE ── */
-.kaggle-badge{display:inline-flex;align-items:center;gap:10px;background:rgba(32,191,255,0.08);border:2px solid rgba(32,191,255,0.25);border-radius:14px;padding:16px 24px;margin:16px 0;}
-.kaggle-badge .kb-icon{font-size:32px;}
-.kaggle-badge .kb-text{text-align:left;}
-.kaggle-badge .kb-title{font-family:'Fredoka One',cursive;font-size:16px;color:#20bfff;}
-.kaggle-badge .kb-sub{font-size:13px;color:var(--muted);}
+/* ── BAR VIS ── */
+.bar-row{display:flex;align-items:end;gap:6px;padding:0 10px;margin:16px 0;}
+.bar-col{display:flex;flex-direction:column;align-items:center;flex:1;gap:4px;}
+.bar{border-radius:6px 6px 0 0;width:100%;min-width:16px;transition:height 0.5s ease;}
+.bar-label{font-family:'Fira Code',monospace;font-size:10px;color:var(--muted);text-align:center;}
+.bar-val{font-family:'Fira Code',monospace;font-size:11px;font-weight:700;}
 
 /* ── QUIZ ── */
 .quiz-wrap{background:var(--card);border:1px solid rgba(244,114,182,0.2);border-radius:20px;padding:36px 32px;margin-top:10px;}
@@ -138,9 +127,9 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);over
 .feedback.ok{color:#3fb950;}.feedback.bad{color:#f85149;}
 .final-box{display:none;text-align:center;padding:40px 20px;}.final-box.show{display:block;}
 .final-score{font-family:'Fredoka One',cursive;font-size:clamp(3rem,10vw,5.5rem);margin-bottom:8px;}
-.final-score.perfect{color:var(--clean-green);filter:drop-shadow(0 0 20px rgba(16,185,129,0.5));}
-.final-score.great{color:var(--analyze-purple);filter:drop-shadow(0 0 20px rgba(139,92,246,0.5));}
-.final-score.okish{color:var(--data-blue);}
+.final-score.perfect{color:var(--sns-green);filter:drop-shadow(0 0 20px rgba(16,185,129,0.5));}
+.final-score.great{color:var(--eda-purple);filter:drop-shadow(0 0 20px rgba(139,92,246,0.5));}
+.final-score.okish{color:var(--chart-blue);}
 .final-stars{font-size:32px;letter-spacing:8px;margin:12px 0;}
 .final-msg{font-family:'Fira Code',monospace;font-size:13px;color:var(--muted);letter-spacing:1px;line-height:2.2;white-space:pre-line;margin-bottom:24px;}
 @media(max-width:600px){.card{padding:20px 18px;}.quiz-wrap{padding:24px 16px;}}
@@ -148,726 +137,732 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);over
 </head>
 <body>
 
-<!-- ╔══════════ HERO ══════════╗ -->
 <div class="hero">
   <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none;">
-    <div class="float-code" style="top:12%;left:4%;">import pandas as pd<br>df = pd.read_csv("titanic.csv")<br>df.head()</div>
-    <div class="float-code" style="top:65%;left:2%;">df.isnull().sum()<br>df.fillna(median)<br>df.drop_duplicates()</div>
-    <div class="float-code" style="top:20%;right:3%;">df.describe()<br>df.groupby("Pclass")<br>df.corr()</div>
-    <div class="float-code" style="top:70%;right:4%;">survived: 342<br>died: 549<br>survival_rate: 38.4%</div>
+    <div class="float-code" style="top:12%;left:4%;">plt.figure(figsize=(10,6))<br>plt.bar(x, y)<br>plt.show()</div>
+    <div class="float-code" style="top:65%;left:2%;">sns.heatmap(df.corr())<br>sns.boxplot(x="Pclass")<br>sns.countplot(x="Survived")</div>
+    <div class="float-code" style="top:20%;right:3%;">EDA checklist:<br>shape → nulls → describe<br>→ distributions → corr</div>
+    <div class="float-code" style="top:70%;right:4%;">bar, line, scatter<br>histogram, box, heatmap<br>choose the right chart!</div>
   </div>
-  <div class="hero-badge">// PHASE 4 · DATA SCIENCE BASICS //</div>
-  <h1>Data Science:<br>From Raw Data<br>to Real Insights</h1>
-  <p>Today we go end-to-end on a REAL Kaggle dataset — the Titanic. You'll learn what data is, how to load it, how to clean it, and how to pull insights that tell a story. One dataset, one lecture, complete pipeline!</p>
+  <div class="hero-badge">// PHASE 4 · DATA VISUALIZATION &amp; EDA //</div>
+  <h1>Data Visualization<br>&amp; Exploratory<br>Data Analysis</h1>
+  <p>Last time we loaded, cleaned, and analyzed the Titanic with numbers. Today we turn those numbers into <strong>pictures</strong> that tell the story at a glance — and learn the systematic EDA workflow every data scientist uses.</p>
   <div class="topic-pills">
-    <div class="pill pill-data">📊 What is a Dataset?</div>
-    <div class="pill pill-load">📂 Loading CSV &amp; Excel</div>
-    <div class="pill pill-clean">🧹 Cleaning &amp; Preprocessing</div>
-    <div class="pill pill-analyze">🔍 Analysis Techniques</div>
-    <div class="pill pill-viz">🚢 Titanic Case Study</div>
+    <div class="pill pill-chart">📊 Why Visualize?</div>
+    <div class="pill pill-plt">🎨 Matplotlib</div>
+    <div class="pill pill-sns">🌊 Seaborn</div>
+    <div class="pill pill-eda">🔍 EDA Workflow</div>
   </div>
 </div>
 
 <div class="wrapper">
 
-<!-- ╔══════════ OUR DATASET ══════════╗ -->
-<div class="section-divider div-data">
-  <div class="label">🚢 Meet Our Dataset</div>
+<!-- ╔══════════ RECAP ══════════╗ -->
+<div class="section-divider div-chart">
+  <div class="label">🔄 Quick Recap — Where We Left Off</div>
 </div>
 
-<div class="card card-data">
-  <h3>Today's Mission: The Titanic Dataset</h3>
-  <p>We'll use one of the most famous beginner datasets in all of data science — the <strong>Titanic passenger list from Kaggle</strong>. It has everything: numbers, text, missing values, and a powerful question to answer.</p>
+<div class="card card-chart">
+  <h3>Our Clean Titanic Dataset is Ready!</h3>
+  <p>Last session we went from raw CSV → clean data. Here's where we stand:</p>
 
-  <div class="kaggle-badge">
-    <div class="kb-icon">🏆</div>
-    <div class="kb-text">
-      <div class="kb-title">Kaggle: Titanic — Machine Learning from Disaster</div>
-      <div class="kb-sub">891 passengers · 12 columns · The most famous beginner dataset in ML</div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;margin:16px 0;">
+    <div style="flex:1;min-width:100px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:8px;padding:10px;text-align:center;">
+      <div style="font-family:'Fira Code',monospace;font-size:11px;color:var(--muted);">Rows</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:22px;color:var(--chart-blue);">891</div>
+    </div>
+    <div style="flex:1;min-width:100px;background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.2);border-radius:8px;padding:10px;text-align:center;">
+      <div style="font-family:'Fira Code',monospace;font-size:11px;color:var(--muted);">Columns</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:22px;color:var(--plt-orange);">9</div>
+    </div>
+    <div style="flex:1;min-width:100px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:8px;padding:10px;text-align:center;">
+      <div style="font-family:'Fira Code',monospace;font-size:11px;color:var(--muted);">Missing</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:22px;color:var(--sns-green);">0</div>
+    </div>
+    <div style="flex:1;min-width:100px;background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.2);border-radius:8px;padding:10px;text-align:center;">
+      <div style="font-family:'Fira Code',monospace;font-size:11px;color:var(--muted);">All Numeric</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:22px;color:var(--eda-purple);">✅</div>
     </div>
   </div>
 
-  <div style="background:rgba(59,130,246,0.08);border:2px solid rgba(59,130,246,0.25);border-radius:14px;padding:24px;margin:16px 0;text-align:center;">
-    <div style="font-family:'Fredoka One',cursive;font-size:22px;color:var(--data-blue);margin-bottom:8px;">❓ The Big Question</div>
-    <div style="font-size:18px;color:#fff;line-height:1.6;">What kind of passenger was most likely to <strong style="color:var(--clean-green);">survive</strong> the Titanic?</div>
-    <div style="font-size:14px;color:var(--muted);margin-top:8px;">Age? Gender? Ticket class? Let's find out using data science!</div>
-  </div>
-</div>
+  <div class="code-line" style="font-size:13px;"># Picking up where we left off
+import pandas as pd, numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-
-<!-- ╔══════════ WHAT IS A DATASET? ══════════╗ -->
-<div class="section-divider div-data">
-  <div class="label">📊 What is a Dataset?</div>
-</div>
-
-<div class="card card-data">
-  <h3>Think of it Like a Spreadsheet</h3>
-  <p>A <strong>dataset</strong> is an organized collection of data stored in <strong>rows</strong> and <strong>columns</strong> — exactly like a table or spreadsheet you'd see in Google Sheets or Excel.</p>
-
-  <div style="display:grid;gap:12px;margin:20px 0;">
-    <div style="background:rgba(59,130,246,0.06);border:2px solid rgba(59,130,246,0.2);border-radius:10px;padding:16px;display:flex;align-items:center;gap:14px;">
-      <div style="font-size:28px;min-width:36px;text-align:center;">📄</div>
-      <div><strong style="color:var(--data-blue);">Each ROW</strong> = one <strong>record</strong> (one person, one transaction, one event). In Titanic: each row = one passenger.</div>
-    </div>
-    <div style="background:rgba(249,115,22,0.06);border:2px solid rgba(249,115,22,0.2);border-radius:10px;padding:16px;display:flex;align-items:center;gap:14px;">
-      <div style="font-size:28px;min-width:36px;text-align:center;">📊</div>
-      <div><strong style="color:var(--load-orange);">Each COLUMN</strong> = one <strong>feature</strong> (one property or attribute). In Titanic: Name, Age, Gender, Ticket Class, etc.</div>
-    </div>
-    <div style="background:rgba(16,185,129,0.06);border:2px solid rgba(16,185,129,0.2);border-radius:10px;padding:16px;display:flex;align-items:center;gap:14px;">
-      <div style="font-size:28px;min-width:36px;text-align:center;">🎯</div>
-      <div><strong style="color:var(--clean-green);">One special column</strong> = the <strong>target/label</strong> — what you're trying to predict. In Titanic: "Survived" (0 = No, 1 = Yes).</div>
-    </div>
-  </div>
-
-  <div style="overflow-x:auto;">
-    <table class="data-table">
-      <thead><tr><th>PassengerId</th><th>Survived</th><th>Pclass</th><th>Name</th><th>Sex</th><th>Age</th><th>Fare</th></tr></thead>
-      <tbody>
-        <tr><td>1</td><td>0</td><td>3</td><td>Braund, Mr. Owen</td><td>male</td><td>22</td><td>7.25</td></tr>
-        <tr><td>2</td><td>1</td><td>1</td><td>Cumings, Mrs. John</td><td>female</td><td>38</td><td>71.28</td></tr>
-        <tr><td>3</td><td>1</td><td>3</td><td>Heikkinen, Miss. Laina</td><td>female</td><td>26</td><td>7.92</td></tr>
-        <tr><td>4</td><td>1</td><td>1</td><td>Futrelle, Mrs. Jacques</td><td>female</td><td>35</td><td>53.10</td></tr>
-        <tr><td>5</td><td>0</td><td>3</td><td>Allen, Mr. William</td><td>male</td><td>35</td><td>8.05</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="tip-box">🚢 <strong>Reading the Data:</strong> Row 1 is Owen Braund, a 22-year-old male in 3rd class who paid ₹7.25 — he did NOT survive (Survived=0). Row 2 is Mrs. Cumings, 38, 1st class — she DID survive (Survived=1). Already we see a pattern forming!</div>
-</div>
-
-<div class="card card-data">
-  <h3>Titanic Column Dictionary</h3>
-  <p>Every good dataset comes with a <strong>data dictionary</strong> — a guide explaining what each column means. Here's ours:</p>
-
-  <div style="overflow-x:auto;">
-    <table class="data-table">
-      <thead><tr><th>Column</th><th>What It Means</th><th>Type</th><th>Example</th></tr></thead>
-      <tbody>
-        <tr><td><strong>PassengerId</strong></td><td>Unique ID for each passenger</td><td>Integer</td><td>1, 2, 3...</td></tr>
-        <tr><td><strong>Survived</strong></td><td>Did they survive? <span style="color:var(--clean-green);">1=Yes</span>, <span style="color:#f85149;">0=No</span></td><td>Integer (binary)</td><td>0 or 1</td></tr>
-        <tr><td><strong>Pclass</strong></td><td>Ticket class: 1st, 2nd, or 3rd</td><td>Integer (1, 2, 3)</td><td>1 = luxury, 3 = economy</td></tr>
-        <tr><td><strong>Name</strong></td><td>Full name with title</td><td>String</td><td>"Braund, Mr. Owen"</td></tr>
-        <tr><td><strong>Sex</strong></td><td>Gender</td><td>String</td><td>"male" or "female"</td></tr>
-        <tr><td><strong>Age</strong></td><td>Age in years</td><td>Float</td><td>22, 38, 0.83 (baby!)</td></tr>
-        <tr><td><strong>SibSp</strong></td><td>Siblings/spouses aboard</td><td>Integer</td><td>0, 1, 2...</td></tr>
-        <tr><td><strong>Parch</strong></td><td>Parents/children aboard</td><td>Integer</td><td>0, 1, 2...</td></tr>
-        <tr><td><strong>Ticket</strong></td><td>Ticket number</td><td>String</td><td>"A/5 21171"</td></tr>
-        <tr><td><strong>Fare</strong></td><td>How much they paid</td><td>Float</td><td>7.25, 71.28</td></tr>
-        <tr><td><strong>Cabin</strong></td><td>Cabin number</td><td>String</td><td>"C85" (many missing!)</td></tr>
-        <tr><td><strong>Embarked</strong></td><td>Port boarded: C, Q, S</td><td>String</td><td>S=Southampton, C=Cherbourg, Q=Queenstown</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-
-<!-- ╔══════════ FILE FORMATS ══════════╗ -->
-<div class="section-divider div-load">
-  <div class="label">📂 What is CSV? What is Excel?</div>
-</div>
-
-<div class="card card-load">
-  <h3>CSV — The Universal Data Format</h3>
-  <p><strong>CSV</strong> stands for <strong>Comma-Separated Values</strong>. It's the simplest way to store a table — just a plain text file where each value is separated by a comma, and each line is a new row.</p>
-
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0;">
-    <div style="background:rgba(249,115,22,0.08);border:2px solid rgba(249,115,22,0.25);border-radius:12px;padding:20px;">
-      <div style="font-family:'Fredoka One',cursive;color:var(--load-orange);font-size:16px;margin-bottom:8px;">📄 What a CSV looks like inside</div>
-      <div class="code-line" style="font-size:12px;color:var(--load-amber);margin-top:8px;">PassengerId,Survived,Pclass,Name,Sex,Age,Fare
-1,0,3,"Braund, Mr. Owen",male,22,7.25
-2,1,1,"Cumings, Mrs. John",female,38,71.28
-3,1,3,"Heikkinen, Miss. Laina",female,26,7.92</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:10px;">Plain text — commas separate values. Opens in ANY text editor, Excel, Google Sheets, Python!</div>
-    </div>
-    <div style="background:rgba(16,185,129,0.08);border:2px solid rgba(16,185,129,0.25);border-radius:12px;padding:20px;">
-      <div style="font-family:'Fredoka One',cursive;color:var(--clean-green);font-size:16px;margin-bottom:8px;">📗 What Excel (.xlsx) is</div>
-      <div style="margin-top:8px;">
-        <table class="data-table" style="font-size:11px;"><thead><tr><th class="th-clean">A</th><th class="th-clean">B</th><th class="th-clean">C</th></tr></thead>
-        <tbody><tr><td>PassengerId</td><td>Survived</td><td>Pclass</td></tr><tr><td>1</td><td>0</td><td>3</td></tr><tr><td>2</td><td>1</td><td>1</td></tr></tbody></table>
-      </div>
-      <div style="font-size:13px;color:var(--muted);margin-top:10px;">Binary format — has formatting, formulas, multiple sheets. Needs Excel or special libraries to read!</div>
-    </div>
-  </div>
-</div>
-
-<div class="card card-load">
-  <h3>CSV vs Excel — When to Use Which?</h3>
-
-  <div style="overflow-x:auto;">
-    <table class="data-table">
-      <thead><tr><th class="th-load">Feature</th><th class="th-load">CSV (.csv)</th><th class="th-load">Excel (.xlsx)</th></tr></thead>
-      <tbody>
-        <tr><td><strong>Format</strong></td><td>Plain text</td><td>Binary (proprietary)</td></tr>
-        <tr><td><strong>Size</strong></td><td>Small — just data</td><td>Larger — stores formatting too</td></tr>
-        <tr><td><strong>Multiple sheets?</strong></td><td>No — one table per file</td><td>Yes — many tabs/sheets</td></tr>
-        <tr><td><strong>Formulas?</strong></td><td>No</td><td>Yes (SUM, VLOOKUP, etc.)</td></tr>
-        <tr><td><strong>Best for</strong></td><td>Data science, ML, sharing data</td><td>Business reports, finance</td></tr>
-        <tr><td><strong>Python command</strong></td><td>pd.read_csv()</td><td>pd.read_excel()</td></tr>
-        <tr><td><strong>Used on Kaggle?</strong></td><td style="color:var(--clean-green);font-weight:700;">Yes! Almost always</td><td>Sometimes</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="tip-box tip-box-load">📂 <strong>Pro Tip:</strong> In data science, CSV is king. It's lightweight, universal, and every tool reads it. Kaggle, GitHub, and most ML pipelines use CSV. You'll use <code>pd.read_csv()</code> 95% of the time!</div>
-</div>
-
-<div class="card card-load">
-  <h3>Other Data Formats You'll See</h3>
-
-  <div class="concept-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
-    <div class="concept-card" style="border-color:var(--load-orange);padding:16px;">
-      <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--load-orange);margin-bottom:4px;">.tsv</div>
-      <div style="font-size:12px;color:var(--muted);">Tab-separated. Like CSV but tabs instead of commas.</div>
-    </div>
-    <div class="concept-card" style="border-color:var(--data-blue);padding:16px;">
-      <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--data-blue);margin-bottom:4px;">.json</div>
-      <div style="font-size:12px;color:var(--muted);">JavaScript Object Notation. Used by APIs & web apps.</div>
-    </div>
-    <div class="concept-card" style="border-color:var(--clean-green);padding:16px;">
-      <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--clean-green);margin-bottom:4px;">.parquet</div>
-      <div style="font-size:12px;color:var(--muted);">Compressed columnar format. Super fast for big data!</div>
-    </div>
-    <div class="concept-card" style="border-color:var(--analyze-purple);padding:16px;">
-      <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--analyze-purple);margin-bottom:4px;">.sql</div>
-      <div style="font-size:12px;color:var(--muted);">Database queries. Data stored in relational databases.</div>
-    </div>
-  </div>
-</div>
-
-
-<!-- ╔══════════ LOADING ══════════╗ -->
-<div class="section-divider div-load">
-  <div class="label">📥 Loading the Titanic Dataset</div>
-</div>
-
-<div class="card card-load">
-  <h3>Step 1: Import Libraries</h3>
-  <p>We need three libraries — <strong>Pandas</strong> for data, <strong>NumPy</strong> for math, and <strong>Matplotlib/Seaborn</strong> for charts.</p>
-
-  <div class="code-line">import pandas as pd       # Data manipulation — the star of the show!
-import numpy as np        # Numerical computing
-import matplotlib.pyplot as plt   # Basic plotting
-import seaborn as sns     # Beautiful statistical plots
-
-# Settings for prettier charts
-sns.set_style("darkgrid")
-plt.rcParams['figure.figsize'] = (10, 6)</div>
-</div>
-
-<div class="card card-load">
-  <h3>Step 2: Load the CSV</h3>
-
-  <div class="code-line"># Load the Titanic dataset
-df = pd.read_csv("titanic.csv")
-
-# Or directly from a URL (Kaggle / GitHub)
 url = "https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv"
 df = pd.read_csv(url)
 
-print("✅ Dataset loaded!")
-print(f"Shape: {df.shape[0]} rows × {df.shape[1]} columns")</div>
-
-  <div class="output-console">✅ Dataset loaded!
-Shape: 891 rows × 12 columns</div>
-
-  <div class="tip-box tip-box-load">📥 <strong>What just happened?</strong> <code>pd.read_csv()</code> read the file, understood the commas, turned it into a <strong>DataFrame</strong> (Pandas's fancy table), and stored it in a variable called <code>df</code>. Now we can explore it!</div>
-</div>
-
-<div class="card card-load">
-  <h3>Step 3: First Look — Exploring the Data</h3>
-  <p>Before doing ANYTHING, always explore your data first. Here are the <strong>5 essential commands</strong>:</p>
-
-  <div class="code-line"># 1. First 5 rows — see what the data looks like
-df.head()</div>
-
-  <div class="output-console" style="font-size:11px;">   PassengerId  Survived  Pclass                            Name     Sex   Age  SibSp  Parch     Ticket    Fare Cabin  Embarked
-0            1         0       3       Braund, Mr. Owen Harris    male  22.0      1      0  A/5 21171   7.25   NaN         S
-1            2         1       1  Cumings, Mrs. John Bradley  female  38.0      1      0   PC 17599  71.28   C85         C
-2            3         1       3    Heikkinen, Miss. Laina     female  26.0      0      0  STON/O2.  7.92   NaN         S
-3            4         1       1  Futrelle, Mrs. Jacques Heath  female  35.0      1      0    113803  53.10  C123         S
-4            5         0       3      Allen, Mr. William Henry    male  35.0      0      0    373450   8.05   NaN         S</div>
-
-  <div class="code-line"># 2. Shape — how big is our data?
-print("Shape:", df.shape)       # (891, 12)
-
-# 3. Data types — what kind of data is in each column?
-print(df.dtypes)
-
-# 4. Quick statistics — numbers at a glance
-df.describe()
-
-# 5. Missing values — where's the data incomplete?
-print(df.isnull().sum())</div>
-
-  <div class="output-console">Shape: (891, 12)
-
-PassengerId      0    ← No missing!
-Survived         0
-Pclass           0
-Name             0
-Sex              0
-Age            177    ← 😱 177 passengers have no age!
-SibSp            0
-Parch            0
-Ticket           0
-Fare             0
-Cabin          687    ← 😱 687 missing! (77% gone!)
-Embarked         2    ← 2 missing</div>
-</div>
-
-<div class="card card-load">
-  <h3>Step 4: df.describe() — Statistics in One Line</h3>
-  <p>This single command gives you count, mean, std, min, 25%, 50% (median), 75%, and max for every number column!</p>
-
-  <div class="code-line">df.describe()</div>
-
-  <div class="output-console" style="font-size:11px;">       PassengerId  Survived    Pclass       Age     SibSp     Parch      Fare
-count    891.0000  891.0000  891.0000  714.0000  891.0000  891.0000  891.0000
-mean     446.0000    0.3838    2.3086   29.6991    0.5230    0.3816   32.2042
-std      257.3538    0.4866    0.8361   14.5265    1.1027    0.8061   49.6934
-min        1.0000    0.0000    1.0000    0.4200    0.0000    0.0000    0.0000
-25%      223.5000    0.0000    2.0000   20.1250    0.0000    0.0000    7.9104
-50%      446.0000    0.0000    3.0000   28.0000    0.0000    0.0000   14.4542
-75%      669.5000    1.0000    3.0000   38.0000    1.0000    0.0000   31.0000
-max      891.0000    1.0000    3.0000   80.0000    8.0000    6.0000  512.3292</div>
-
-  <div style="background:rgba(59,130,246,0.08);border:2px solid rgba(59,130,246,0.2);border-radius:12px;padding:20px;margin:16px 0;">
-    <div style="font-family:'Fredoka One',cursive;color:var(--data-blue);font-size:16px;margin-bottom:12px;">🔍 What This Tells Us Already!</div>
-    <div style="font-size:15px;color:var(--muted);line-height:2.2;">
-      • <strong style="color:#fff;">Survival rate: 38.4%</strong> — most people (61.6%) did NOT survive<br>
-      • <strong style="color:#fff;">Average age: ~30 years</strong> — youngest was 0.42 (a baby!), oldest was 80<br>
-      • <strong style="color:#fff;">Average fare: ₹32.20</strong> — but max was ₹512! Huge range = different classes<br>
-      • <strong style="color:#fff;">Age has only 714 values</strong> (count) — but we have 891 rows. That means 177 missing!<br>
-      • <strong style="color:#fff;">Most were in 3rd class</strong> — median Pclass = 3
-    </div>
-  </div>
-</div>
-
-<!-- Interactive: Explore Commands -->
-<div class="demo-box box-load">
-  <div class="box-title">🔍 Interactive: Explore the Titanic</div>
-  <p style="text-align:center;color:var(--muted);margin-bottom:16px;">Click a Pandas command and see the result!</p>
-  <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-    <button class="btn btn-load" onclick="showExplore('head')">df.head()</button>
-    <button class="btn btn-load" onclick="showExplore('shape')">df.shape</button>
-    <button class="btn btn-load" onclick="showExplore('dtypes')">df.dtypes</button>
-    <button class="btn btn-load" onclick="showExplore('null')">df.isnull().sum()</button>
-    <button class="btn btn-load" onclick="showExplore('value')">df["Survived"].value_counts()</button>
-    <button class="btn btn-load" onclick="showExplore('unique')">df["Embarked"].unique()</button>
-  </div>
-  <div id="exploreOutput"></div>
-</div>
-
-
-<!-- ╔══════════ CLEANING ══════════╗ -->
-<div class="section-divider div-clean">
-  <div class="label">🧹 Cleaning the Titanic Data</div>
-</div>
-
-<div class="card card-clean">
-  <h3>Why Clean Data? — Garbage In, Garbage Out!</h3>
-  <p>Real-world data is <strong>always messy</strong>. Our Titanic dataset has 3 problems we need to fix before analysis:</p>
-
-  <div class="concept-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));">
-    <div class="concept-card" style="border-color:#f85149;">
-      <div style="font-size:28px;margin-bottom:8px;">❓</div>
-      <div style="font-family:'Fredoka One',cursive;font-size:15px;color:#f85149;margin-bottom:6px;">Missing Values</div>
-      <div style="font-size:12px;color:var(--muted);">Age: 177 missing (20%)<br>Cabin: 687 missing (77%!)<br>Embarked: 2 missing</div>
-    </div>
-    <div class="concept-card" style="border-color:var(--load-orange);">
-      <div style="font-size:28px;margin-bottom:8px;">🔤</div>
-      <div style="font-family:'Fredoka One',cursive;font-size:15px;color:var(--load-orange);margin-bottom:6px;">Wrong Data Types</div>
-      <div style="font-size:12px;color:var(--muted);">"Sex" is text — ML needs numbers!<br>"Embarked" is letters — need encoding</div>
-    </div>
-    <div class="concept-card" style="border-color:var(--analyze-purple);">
-      <div style="font-size:28px;margin-bottom:8px;">🗑️</div>
-      <div style="font-family:'Fredoka One',cursive;font-size:15px;color:var(--analyze-purple);margin-bottom:6px;">Useless Columns</div>
-      <div style="font-size:12px;color:var(--muted);">PassengerId: just a counter<br>Name: unique text (hard to use)<br>Ticket: random strings</div>
-    </div>
-  </div>
-</div>
-
-<div class="card card-clean">
-  <h3>Fix 1: Handle Missing Values</h3>
-
-  <div class="code-line"># Check what's missing
-print(df.isnull().sum())
-print(f"\nAge missing: {df['Age'].isnull().sum()} out of {len(df)} ({df['Age'].isnull().mean()*100:.1f}%)")
-print(f"Cabin missing: {df['Cabin'].isnull().sum()} out of {len(df)} ({df['Cabin'].isnull().mean()*100:.1f}%)")</div>
-
-  <div class="output-console">Age missing: 177 out of 891 (19.9%)
-Cabin missing: 687 out of 891 (77.1%)</div>
-
-  <div style="display:grid;gap:12px;margin:16px 0;">
-    <div style="background:rgba(16,185,129,0.06);border:2px solid rgba(16,185,129,0.2);border-radius:10px;padding:16px;">
-      <strong style="color:var(--clean-green);">Age → Fill with median (28)</strong>
-      <div class="code-line" style="font-size:13px;margin-top:8px;"># Fill Age with the median (middle value)
+# Apply our cleaning from last time
 df["Age"].fillna(df["Age"].median(), inplace=True)
-print("Age missing after fix:", df["Age"].isnull().sum())  # 0!</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:8px;">Why median not mean? Because mean is affected by outliers (that 80-year-old!). Median is safer.</div>
-    </div>
-
-    <div style="background:rgba(248,81,73,0.06);border:2px solid rgba(248,81,73,0.2);border-radius:10px;padding:16px;">
-      <strong style="color:#f85149;">Cabin → DROP the whole column</strong>
-      <div class="code-line" style="font-size:13px;margin-top:8px;"># 77% missing = too much to fill. Drop it!
-df.drop("Cabin", axis=1, inplace=True)
-print("Columns after drop:", list(df.columns))</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:8px;">Rule of thumb: If >50% of a column is missing, drop the whole column.</div>
-    </div>
-
-    <div style="background:rgba(59,130,246,0.06);border:2px solid rgba(59,130,246,0.2);border-radius:10px;padding:16px;">
-      <strong style="color:var(--data-blue);">Embarked → Fill with mode (most common)</strong>
-      <div class="code-line" style="font-size:13px;margin-top:8px;"># Only 2 missing — fill with the most common port
 df["Embarked"].fillna(df["Embarked"].mode()[0], inplace=True)
-print("Embarked missing:", df["Embarked"].isnull().sum())  # 0!</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:8px;">Mode = most frequent value. Most passengers boarded at Southampton ("S").</div>
+df.drop(["PassengerId","Name","Ticket","Cabin"], axis=1, inplace=True)
+df["Sex"] = df["Sex"].map({"male":0,"female":1})
+df = pd.get_dummies(df, columns=["Embarked"], drop_first=True)
+
+print("✅ Clean data ready! Shape:", df.shape)</div>
+</div>
+
+
+<!-- ╔══════════ WHY VISUALIZE ══════════╗ -->
+<div class="section-divider div-chart">
+  <div class="label">📊 Why Visualize Data?</div>
+</div>
+
+<div class="card card-chart">
+  <h3>Numbers Tell — Charts SHOW</h3>
+  <p>Last session we discovered that 38.4% survived, women had 74% survival, and 1st class had 63%. Those are <strong>numbers</strong>. But a chart lets you <strong>see</strong> the pattern instantly — your brain processes images 60,000× faster than text!</p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0;">
+    <div style="background:rgba(255,255,255,0.03);border:2px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;text-align:center;">
+      <div style="font-family:'Fredoka One',cursive;color:var(--muted);font-size:16px;margin-bottom:10px;">📝 Numbers Only</div>
+      <div style="font-family:'Fira Code',monospace;font-size:13px;color:var(--muted);line-height:2;">
+        Male survival: 18.9%<br>Female survival: 74.2%<br>
+        Class 1: 63.0%<br>Class 2: 47.3%<br>Class 3: 24.2%
+      </div>
+      <div style="font-size:13px;color:var(--muted);margin-top:8px;">Takes time to read and compare 🐌</div>
+    </div>
+    <div style="background:rgba(59,130,246,0.06);border:2px solid rgba(59,130,246,0.2);border-radius:12px;padding:20px;text-align:center;">
+      <div style="font-family:'Fredoka One',cursive;color:var(--chart-blue);font-size:16px;margin-bottom:10px;">📊 Chart</div>
+      <div class="bar-row" style="height:120px;margin:0;">
+        <div class="bar-col"><div class="bar" style="height:18.9%;background:#f85149;"></div><div class="bar-label">Male<br>19%</div></div>
+        <div class="bar-col"><div class="bar" style="height:74.2%;background:var(--sns-green);"></div><div class="bar-label">Female<br>74%</div></div>
+        <div class="bar-col" style="border-left:2px solid rgba(255,255,255,0.06);padding-left:6px;"><div class="bar" style="height:63%;background:var(--chart-blue);"></div><div class="bar-label">1st<br>63%</div></div>
+        <div class="bar-col"><div class="bar" style="height:47.3%;background:var(--plt-orange);"></div><div class="bar-label">2nd<br>47%</div></div>
+        <div class="bar-col"><div class="bar" style="height:24.2%;background:var(--eda-purple);"></div><div class="bar-label">3rd<br>24%</div></div>
+      </div>
+      <div style="font-size:13px;color:var(--chart-blue);margin-top:8px;">Pattern is INSTANT! ⚡</div>
+    </div>
+  </div>
+
+  <div class="tip-box">👁️ <strong>One Good Chart > 100 Numbers.</strong> Data visualization is how you communicate findings to bosses, clients, teachers — anyone who needs to understand your data quickly. It's also how YOU discover hidden patterns during EDA.</div>
+</div>
+
+<div class="card card-chart">
+  <h3>Choosing the Right Chart</h3>
+  <p>Different questions need different charts. Here's your cheat sheet:</p>
+
+  <div class="concept-grid" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr));">
+    <div class="concept-card" style="border-color:var(--chart-blue);padding:16px;">
+      <div style="font-size:28px;margin-bottom:6px;">📊</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--chart-blue);margin-bottom:4px;">Bar Chart</div>
+      <div style="font-size:12px;color:var(--muted);">Compare categories. "How many survived vs died?"</div>
+    </div>
+    <div class="concept-card" style="border-color:var(--plt-orange);padding:16px;">
+      <div style="font-size:28px;margin-bottom:6px;">📈</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--plt-orange);margin-bottom:4px;">Line Chart</div>
+      <div style="font-size:12px;color:var(--muted);">Trends over time. "How did sales change each month?"</div>
+    </div>
+    <div class="concept-card" style="border-color:var(--sns-green);padding:16px;">
+      <div style="font-size:28px;margin-bottom:6px;">📉</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--sns-green);margin-bottom:4px;">Histogram</div>
+      <div style="font-size:12px;color:var(--muted);">Distribution shape. "How are ages spread out?"</div>
+    </div>
+    <div class="concept-card" style="border-color:var(--eda-purple);padding:16px;">
+      <div style="font-size:28px;margin-bottom:6px;">⚬</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--eda-purple);margin-bottom:4px;">Scatter Plot</div>
+      <div style="font-size:12px;color:var(--muted);">Relationship between 2 numbers. "Does age affect fare?"</div>
+    </div>
+    <div class="concept-card" style="border-color:var(--eda-pink);padding:16px;">
+      <div style="font-size:28px;margin-bottom:6px;">📦</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--eda-pink);margin-bottom:4px;">Box Plot</div>
+      <div style="font-size:12px;color:var(--muted);">Spread + outliers. "What's the fare range per class?"</div>
+    </div>
+    <div class="concept-card" style="border-color:var(--insight-rose);padding:16px;">
+      <div style="font-size:28px;margin-bottom:6px;">🟥</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--insight-rose);margin-bottom:4px;">Heatmap</div>
+      <div style="font-size:12px;color:var(--muted);">Correlation grid. "Which features relate to survival?"</div>
+    </div>
+    <div class="concept-card" style="border-color:var(--plt-amber);padding:16px;">
+      <div style="font-size:28px;margin-bottom:6px;">🥧</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--plt-amber);margin-bottom:4px;">Pie Chart</div>
+      <div style="font-size:12px;color:var(--muted);">Parts of a whole. "What % boarded at each port?"</div>
+    </div>
+    <div class="concept-card" style="border-color:var(--chart-sky);padding:16px;">
+      <div style="font-size:28px;margin-bottom:6px;">🎻</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--chart-sky);margin-bottom:4px;">Violin / KDE</div>
+      <div style="font-size:12px;color:var(--muted);">Distribution shape. Like a histogram but smoother!</div>
     </div>
   </div>
 </div>
 
-<div class="card card-clean">
-  <h3>Fix 2: Drop Useless Columns</h3>
-
-  <div class="code-line"># Remove columns that don't help analysis
-df.drop(["PassengerId", "Name", "Ticket"], axis=1, inplace=True)
-
-print("Remaining columns:", list(df.columns))
-print("Shape:", df.shape)</div>
-
-  <div class="output-console">Remaining columns: ['Survived', 'Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'Embarked']
-Shape: (891, 8)</div>
-
-  <div class="tip-box tip-box-clean">🧹 <strong>We went from 12 columns to 8!</strong> We dropped PassengerId (just a counter), Name (unique text), Ticket (random codes), and Cabin (77% missing). The remaining 8 columns are all useful for analysis.</div>
+<!-- Interactive: Chart Picker -->
+<div class="demo-box box-chart">
+  <div class="box-title">🎯 Interactive: Which Chart Should I Use?</div>
+  <p style="text-align:center;color:var(--muted);margin-bottom:16px;">Pick a question about Titanic data and see the right chart!</p>
+  <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+    <button class="btn btn-chart" onclick="pickChart('survive')">Survived vs Died?</button>
+    <button class="btn btn-chart" onclick="pickChart('ages')">Age distribution?</button>
+    <button class="btn btn-chart" onclick="pickChart('fare_class')">Fare by class?</button>
+    <button class="btn btn-chart" onclick="pickChart('corr')">Feature correlations?</button>
+    <button class="btn btn-chart" onclick="pickChart('age_fare')">Age vs Fare?</button>
+    <button class="btn btn-chart" onclick="pickChart('embark')">Boarding port split?</button>
+  </div>
+  <div id="chartPickOutput"></div>
 </div>
 
-<div class="card card-clean">
-  <h3>Fix 3: Convert Text to Numbers (Encoding)</h3>
-  <p>ML models need <strong>numbers</strong>, not text! We need to convert "Sex" and "Embarked".</p>
 
-  <div class="code-line"># Method 1: Map (for binary columns like Sex)
-df["Sex"] = df["Sex"].map({"male": 0, "female": 1})
-print("Sex column:\n", df["Sex"].head())
+<!-- ╔══════════ MATPLOTLIB ══════════╗ -->
+<div class="section-divider div-plt">
+  <div class="label">🎨 Matplotlib — The Foundation</div>
+</div>
 
-# Method 2: One-Hot Encoding (for multi-category columns)
-df = pd.get_dummies(df, columns=["Embarked"], drop_first=True)
-print("\nNew columns:", list(df.columns))</div>
+<div class="card card-plt">
+  <h3>Matplotlib Anatomy — The Building Blocks</h3>
+  <p><strong>Matplotlib</strong> is Python's core plotting library. Every chart has these parts:</p>
 
-  <div class="output-console">Sex column:
-0    0    ← male
-1    1    ← female
-2    1    ← female
-3    1    ← female
-4    0    ← male
+  <div style="background:rgba(249,115,22,0.06);border:2px solid rgba(249,115,22,0.2);border-radius:14px;padding:24px;margin:16px 0;">
+    <svg viewBox="0 0 600 320" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:580px;display:block;margin:0 auto;">
+      <!-- Figure border -->
+      <rect x="10" y="10" width="580" height="300" rx="8" fill="none" stroke="rgba(249,115,22,0.3)" stroke-width="2" stroke-dasharray="6"/>
+      <text x="20" y="30" fill="#f97316" font-family="Fredoka One,cursive" font-size="12">Figure (the whole canvas)</text>
 
-New columns: ['Survived', 'Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'Embarked_Q', 'Embarked_S']</div>
+      <!-- Axes area -->
+      <rect x="70" y="50" width="460" height="220" rx="4" fill="rgba(255,255,255,0.02)" stroke="rgba(59,130,246,0.3)" stroke-width="1.5"/>
+      <text x="80" y="68" fill="#3b82f6" font-family="Fredoka One,cursive" font-size="11">Axes (the plot area)</text>
+
+      <!-- Y axis -->
+      <line x1="70" y1="50" x2="70" y2="270" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+      <text x="20" y="165" fill="#8892a4" font-family="Fira Code,monospace" font-size="9" transform="rotate(-90,20,165)">Y-axis Label</text>
+      <text x="56" y="270" fill="#8892a4" font-family="Fira Code,monospace" font-size="8">0</text>
+      <text x="48" y="160" fill="#8892a4" font-family="Fira Code,monospace" font-size="8">50</text>
+      <text x="42" y="75" fill="#8892a4" font-family="Fira Code,monospace" font-size="8">100</text>
+
+      <!-- X axis -->
+      <line x1="70" y1="270" x2="530" y2="270" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+      <text x="300" y="295" text-anchor="middle" fill="#8892a4" font-family="Fira Code,monospace" font-size="9">X-axis Label</text>
+
+      <!-- Title -->
+      <text x="300" y="45" text-anchor="middle" fill="#fff" font-family="Fredoka One,cursive" font-size="13">Title (plt.title)</text>
+
+      <!-- Sample bars -->
+      <rect x="120" y="120" width="60" height="150" rx="4" fill="rgba(59,130,246,0.5)"/>
+      <rect x="220" y="80" width="60" height="190" rx="4" fill="rgba(16,185,129,0.5)"/>
+      <rect x="320" y="170" width="60" height="100" rx="4" fill="rgba(249,115,22,0.5)"/>
+      <rect x="420" y="140" width="60" height="130" rx="4" fill="rgba(139,92,246,0.5)"/>
+
+      <!-- Legend -->
+      <rect x="430" y="55" width="90" height="50" rx="6" fill="rgba(0,0,0,0.4)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+      <text x="440" y="70" fill="#8892a4" font-family="Fira Code,monospace" font-size="8">Legend</text>
+      <rect x="440" y="77" width="12" height="8" rx="2" fill="rgba(59,130,246,0.5)"/>
+      <text x="458" y="85" fill="#8892a4" font-family="Fira Code,monospace" font-size="7">Series A</text>
+      <rect x="440" y="90" width="12" height="8" rx="2" fill="rgba(16,185,129,0.5)"/>
+      <text x="458" y="98" fill="#8892a4" font-family="Fira Code,monospace" font-size="7">Series B</text>
+    </svg>
+  </div>
+
+  <div class="code-line">import matplotlib.pyplot as plt
+
+# The basic recipe — always the same pattern!
+plt.figure(figsize=(10, 6))        # 1. Create canvas (width, height in inches)
+plt.bar(["Died","Survived"], [549,342])  # 2. Draw the chart
+plt.title("Titanic Survival Count")     # 3. Add title
+plt.xlabel("Outcome")                   # 4. Label x-axis
+plt.ylabel("Number of Passengers")      # 5. Label y-axis
+plt.show()                              # 6. Display it!</div>
+
+  <div class="tip-box tip-box-plt">🎨 <strong>The 6-Step Recipe:</strong> figure → plot → title → xlabel → ylabel → show. This pattern works for EVERY chart type. Just change step 2 (bar → line → scatter → hist)!</div>
+</div>
+
+<div class="card card-plt">
+  <h3>Chart 1: Bar Chart — Titanic Survival Count</h3>
+
+  <div class="code-line">fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+# Left: Simple count
+survived_counts = df["Survived"].value_counts()
+axes[0].bar(["Died (0)", "Survived (1)"], survived_counts.values,
+            color=["#f85149", "#10b981"])
+axes[0].set_title("Survival Count", fontweight="bold")
+axes[0].set_ylabel("Passengers")
+
+# Right: Survival rate by class
+class_surv = df.groupby("Pclass")["Survived"].mean() * 100
+axes[1].bar(["1st Class", "2nd Class", "3rd Class"], class_surv.values,
+            color=["#3b82f6", "#f97316", "#8b5cf6"])
+axes[1].set_title("Survival Rate by Class", fontweight="bold")
+axes[1].set_ylabel("Survival %")
+
+plt.tight_layout()
+plt.show()</div>
 
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0;">
-    <div style="background:rgba(248,81,73,0.06);border:2px solid rgba(248,81,73,0.2);border-radius:10px;padding:16px;text-align:center;">
-      <strong style="color:#f85149;">Before</strong>
-      <div style="font-family:'Fira Code',monospace;font-size:13px;color:var(--muted);margin-top:8px;">Sex: "male", "female"<br>Embarked: "S", "C", "Q"</div>
-    </div>
-    <div style="background:rgba(16,185,129,0.06);border:2px solid rgba(16,185,129,0.2);border-radius:10px;padding:16px;text-align:center;">
-      <strong style="color:var(--clean-green);">After</strong>
-      <div style="font-family:'Fira Code',monospace;font-size:13px;color:var(--muted);margin-top:8px;">Sex: 0, 1<br>Embarked_Q: 0/1, Embarked_S: 0/1</div>
-    </div>
-  </div>
-</div>
-
-<div class="card card-clean">
-  <h3>Final Check: Is Our Data Clean?</h3>
-
-  <div class="code-line"># Final validation
-print("Missing values:\n", df.isnull().sum())
-print(f"\nShape: {df.shape}")
-print(f"Data types:\n{df.dtypes}")</div>
-
-  <div class="output-console">Missing values:
-Survived      0
-Pclass        0
-Sex           0
-Age           0
-SibSp         0
-Parch         0
-Fare          0
-Embarked_Q    0
-Embarked_S    0
-dtype: int64
-
-Shape: (891, 9)
-All numeric ✅  No missing values ✅  Ready for analysis! 🎉</div>
-
-  <div class="formula-box" style="border-color:var(--clean-green);">
-    <div style="font-family:'Fredoka One',cursive;font-size:16px;color:var(--clean-green);">Data Cleaning Summary</div>
-    <div class="formula" style="color:var(--clean-green);font-size:16px;">12 columns → 9 columns · 0 missing values · All numeric</div>
-    <div style="font-size:14px;color:var(--muted);margin-top:8px;">Filled Age with median, dropped Cabin, filled Embarked with mode, encoded Sex & Embarked</div>
-  </div>
-</div>
-
-<!-- Interactive: Cleaning Steps -->
-<div class="demo-box box-clean">
-  <div class="box-title">🧹 Interactive: Cleaning Pipeline</div>
-  <p style="text-align:center;color:var(--muted);margin-bottom:16px;">Click each step to see the before/after!</p>
-  <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-    <button class="btn btn-clean" onclick="showClean('missing')">1. Check Missing</button>
-    <button class="btn btn-clean" onclick="showClean('fillage')">2. Fill Age</button>
-    <button class="btn btn-clean" onclick="showClean('dropcabin')">3. Drop Cabin</button>
-    <button class="btn btn-clean" onclick="showClean('encode')">4. Encode Text</button>
-    <button class="btn btn-clean" onclick="showClean('final')">5. Final Check ✅</button>
-  </div>
-  <div id="cleanOutput"></div>
-</div>
-
-
-<!-- ╔══════════ ANALYSIS ══════════╗ -->
-<div class="section-divider div-analyze">
-  <div class="label">🔍 Analyzing the Titanic Data</div>
-</div>
-
-<div class="card card-analyze">
-  <h3>Technique 1: Value Counts — Who Survived?</h3>
-  <p><code>value_counts()</code> counts how many times each value appears. Perfect for categorical data!</p>
-
-  <div class="code-line"># Overall survival
-print(df["Survived"].value_counts())
-print(f"\nSurvival rate: {df['Survived'].mean()*100:.1f}%")</div>
-
-  <div class="output-console">0    549    ← Died
-1    342    ← Survived
-
-Survival rate: 38.4%</div>
-
-  <div style="display:flex;gap:4px;margin:16px 0;height:50px;border-radius:10px;overflow:hidden;">
-    <div style="flex:549;background:linear-gradient(90deg,#f85149,rgba(248,81,73,0.6));display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:14px;color:#fff;">Died: 549 (61.6%)</div>
-    <div style="flex:342;background:linear-gradient(90deg,rgba(16,185,129,0.6),var(--clean-green));display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:14px;color:#fff;">Survived: 342 (38.4%)</div>
-  </div>
-</div>
-
-<div class="card card-analyze">
-  <h3>Technique 2: GroupBy — Survival by Category</h3>
-  <p><code>groupby()</code> splits data into groups, applies a function, and combines results. The most powerful analysis tool in Pandas!</p>
-
-  <div class="code-line"># Survival rate by gender
-print("By Gender:")
-print(df.groupby("Sex")["Survived"].mean() * 100)
-
-# Survival rate by class
-print("\nBy Class:")
-print(df.groupby("Pclass")["Survived"].mean() * 100)</div>
-
-  <div class="output-console">By Gender:
-Sex
-0    18.9%    ← Male survival: only 18.9%!
-1    74.2%    ← Female survival: 74.2%!
-
-By Class:
-Pclass
-1    63.0%    ← 1st class: 63% survived
-2    47.3%    ← 2nd class: 47%
-3    24.2%    ← 3rd class: only 24%!</div>
-
-  <div style="background:rgba(139,92,246,0.08);border:2px solid rgba(139,92,246,0.25);border-radius:12px;padding:20px;margin:16px 0;">
-    <div style="font-family:'Fredoka One',cursive;color:var(--analyze-purple);font-size:18px;margin-bottom:12px;">🔍 Key Findings!</div>
-    <div style="display:grid;gap:10px;">
-      <div style="display:flex;gap:12px;align-items:center;">
-        <div style="font-size:24px;">👩</div>
-        <div><strong style="color:#fff;">Women survived at 4× the rate of men</strong> (74% vs 19%) — "women and children first!" policy confirmed by data.</div>
+    <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:16px;">
+      <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--plt-orange);text-align:center;margin-bottom:8px;">Survival Count</div>
+      <div class="bar-row" style="height:100px;">
+        <div class="bar-col"><div class="bar" style="height:100%;background:#f85149;"></div><div class="bar-val" style="color:#f85149;">549</div><div class="bar-label">Died</div></div>
+        <div class="bar-col"><div class="bar" style="height:62%;background:var(--sns-green);"></div><div class="bar-val" style="color:var(--sns-green);">342</div><div class="bar-label">Survived</div></div>
       </div>
-      <div style="display:flex;gap:12px;align-items:center;">
-        <div style="font-size:24px;">🎩</div>
-        <div><strong style="color:#fff;">1st class survived at 2.6× the rate of 3rd class</strong> (63% vs 24%) — wealth = access to lifeboats.</div>
+    </div>
+    <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:16px;">
+      <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--plt-orange);text-align:center;margin-bottom:8px;">Survival Rate by Class</div>
+      <div class="bar-row" style="height:100px;">
+        <div class="bar-col"><div class="bar" style="height:63%;background:var(--chart-blue);"></div><div class="bar-val" style="color:var(--chart-blue);">63%</div><div class="bar-label">1st</div></div>
+        <div class="bar-col"><div class="bar" style="height:47%;background:var(--plt-orange);"></div><div class="bar-val" style="color:var(--plt-orange);">47%</div><div class="bar-label">2nd</div></div>
+        <div class="bar-col"><div class="bar" style="height:24%;background:var(--eda-purple);"></div><div class="bar-val" style="color:var(--eda-purple);">24%</div><div class="bar-label">3rd</div></div>
       </div>
     </div>
   </div>
 </div>
 
-<div class="card card-analyze">
-  <h3>Technique 3: Cross-Tabulation (GroupBy with 2 Variables)</h3>
+<div class="card card-plt">
+  <h3>Chart 2: Histogram — Age Distribution</h3>
+  <p>A <strong>histogram</strong> shows how values are distributed — which ages were most common on the Titanic?</p>
 
-  <div class="code-line"># Survival by class AND gender combined
-cross = df.groupby(["Pclass", "Sex"])["Survived"].mean() * 100
-print(cross.round(1))</div>
+  <div class="code-line">plt.figure(figsize=(10, 5))
+plt.hist(df["Age"], bins=30, color="#3b82f6", edgecolor="black", alpha=0.7)
+plt.title("Age Distribution of Passengers")
+plt.xlabel("Age")
+plt.ylabel("Count")
+plt.axvline(df["Age"].mean(), color="#f97316", linestyle="--", label=f'Mean: {df["Age"].mean():.1f}')
+plt.axvline(df["Age"].median(), color="#10b981", linestyle="--", label=f'Median: {df["Age"].median():.1f}')
+plt.legend()
+plt.show()</div>
 
-  <div class="output-console">Pclass  Sex
-1       0      36.8%    ← 1st class male
-        1      96.8%    ← 1st class female — almost ALL survived!
-2       0      15.7%    ← 2nd class male
-        1      92.1%    ← 2nd class female
-3       0      13.5%    ← 3rd class male — worst odds
-        1      50.0%    ← 3rd class female</div>
-
-  <div style="overflow-x:auto;margin:16px 0;">
-    <table class="data-table">
-      <thead><tr><th class="th-analyze"></th><th class="th-analyze">Male</th><th class="th-analyze">Female</th></tr></thead>
-      <tbody>
-        <tr><td><strong>1st Class</strong></td><td>36.8%</td><td style="color:var(--clean-green);font-weight:700;">96.8% 🟢</td></tr>
-        <tr><td><strong>2nd Class</strong></td><td>15.7%</td><td style="color:var(--clean-green);font-weight:700;">92.1% 🟢</td></tr>
-        <tr><td><strong>3rd Class</strong></td><td style="color:#f85149;font-weight:700;">13.5% 🔴</td><td>50.0%</td></tr>
-      </tbody>
-    </table>
+  <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:16px;margin:16px 0;">
+    <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--chart-blue);text-align:center;margin-bottom:8px;">Age Distribution</div>
+    <div class="bar-row" style="height:100px;">
+      <div class="bar-col"><div class="bar" style="height:15%;background:rgba(59,130,246,0.4);"></div><div class="bar-label">0-5</div></div>
+      <div class="bar-col"><div class="bar" style="height:20%;background:rgba(59,130,246,0.45);"></div><div class="bar-label">5-10</div></div>
+      <div class="bar-col"><div class="bar" style="height:30%;background:rgba(59,130,246,0.5);"></div><div class="bar-label">10-15</div></div>
+      <div class="bar-col"><div class="bar" style="height:55%;background:rgba(59,130,246,0.55);"></div><div class="bar-label">15-20</div></div>
+      <div class="bar-col"><div class="bar" style="height:90%;background:rgba(59,130,246,0.65);"></div><div class="bar-label">20-25</div></div>
+      <div class="bar-col"><div class="bar" style="height:100%;background:var(--chart-blue);"></div><div class="bar-label">25-30</div></div>
+      <div class="bar-col"><div class="bar" style="height:80%;background:rgba(59,130,246,0.65);"></div><div class="bar-label">30-35</div></div>
+      <div class="bar-col"><div class="bar" style="height:55%;background:rgba(59,130,246,0.55);"></div><div class="bar-label">35-40</div></div>
+      <div class="bar-col"><div class="bar" style="height:35%;background:rgba(59,130,246,0.45);"></div><div class="bar-label">40-50</div></div>
+      <div class="bar-col"><div class="bar" style="height:18%;background:rgba(59,130,246,0.35);"></div><div class="bar-label">50-60</div></div>
+      <div class="bar-col"><div class="bar" style="height:8%;background:rgba(59,130,246,0.25);"></div><div class="bar-label">60-80</div></div>
+    </div>
+    <div style="text-align:center;margin-top:8px;font-size:13px;color:var(--muted);">
+      <span style="color:var(--plt-orange);">--- Mean: 29.7</span> &nbsp;&nbsp; <span style="color:var(--sns-green);">--- Median: 28.0</span> &nbsp;&nbsp; Peak: 20-30 age range
+    </div>
   </div>
 
-  <div class="tip-box tip-box-analyze">🎯 <strong>The Story:</strong> If you were a 1st-class woman, you had a 97% chance of surviving. If you were a 3rd-class man, only 13.5%. Class and gender were literally the difference between life and death.</div>
+  <div class="tip-box tip-box-plt">📊 <strong>Reading the Histogram:</strong> Most passengers were 20-30 years old. The distribution is slightly right-skewed (tail towards older ages). The mean (29.7) is slightly above the median (28.0) — that skew pulling the mean right!</div>
 </div>
 
-<div class="card card-analyze">
-  <h3>Technique 4: Descriptive Statistics by Group</h3>
+<div class="card card-plt">
+  <h3>Chart 3: Scatter Plot — Age vs Fare</h3>
 
-  <div class="code-line"># Compare fares by survival
-print("Average fare — Survived vs Not:")
-print(df.groupby("Survived")["Fare"].mean().round(2))
+  <div class="code-line">plt.figure(figsize=(10, 6))
+colors = df["Survived"].map({0: "#f85149", 1: "#10b981"})
+plt.scatter(df["Age"], df["Fare"], c=colors, alpha=0.5, s=30)
+plt.title("Age vs Fare (colored by Survival)")
+plt.xlabel("Age")
+plt.ylabel("Fare (£)")
+plt.legend(handles=[
+    plt.Line2D([0],[0],marker='o',color='#f85149',label='Died',linestyle=''),
+    plt.Line2D([0],[0],marker='o',color='#10b981',label='Survived',linestyle='')
+])
+plt.show()</div>
 
-# Compare ages
-print("\nAverage age — Survived vs Not:")
-print(df.groupby("Survived")["Age"].mean().round(1))</div>
-
-  <div class="output-console">Average fare — Survived vs Not:
-Survived
-0    22.12    ← Died: average fare ₹22
-1    48.40    ← Survived: average fare ₹48 — 2× more!
-
-Average age — Survived vs Not:
-Survived
-0    30.6     ← Died: average age 30.6
-1    28.3     ← Survived: slightly younger (28.3)</div>
+  <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:16px;margin:16px 0;text-align:center;">
+    <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--eda-purple);margin-bottom:12px;">Age vs Fare (colored by Survival)</div>
+    <svg viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:400px;">
+      <line x1="40" y1="180" x2="390" y2="180" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+      <line x1="40" y1="10" x2="40" y2="180" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+      <text x="215" y="198" text-anchor="middle" fill="#8892a4" font-size="9" font-family="Fira Code">Age →</text>
+      <text x="12" y="100" fill="#8892a4" font-size="9" font-family="Fira Code" transform="rotate(-90,12,100)">Fare →</text>
+      <!-- Scatter dots - died (red) -->
+      <circle cx="80" cy="170" r="3" fill="#f85149" opacity="0.5"/><circle cx="120" cy="165" r="3" fill="#f85149" opacity="0.5"/>
+      <circle cx="90" cy="168" r="3" fill="#f85149" opacity="0.5"/><circle cx="150" cy="160" r="3" fill="#f85149" opacity="0.5"/>
+      <circle cx="200" cy="155" r="3" fill="#f85149" opacity="0.5"/><circle cx="180" cy="162" r="3" fill="#f85149" opacity="0.5"/>
+      <circle cx="250" cy="158" r="3" fill="#f85149" opacity="0.5"/><circle cx="300" cy="170" r="3" fill="#f85149" opacity="0.5"/>
+      <circle cx="100" cy="172" r="3" fill="#f85149" opacity="0.5"/><circle cx="160" cy="167" r="3" fill="#f85149" opacity="0.5"/>
+      <circle cx="220" cy="163" r="3" fill="#f85149" opacity="0.5"/><circle cx="270" cy="165" r="3" fill="#f85149" opacity="0.5"/>
+      <circle cx="140" cy="169" r="3" fill="#f85149" opacity="0.5"/><circle cx="110" cy="171" r="3" fill="#f85149" opacity="0.5"/>
+      <!-- Survived (green) - higher fares -->
+      <circle cx="100" cy="80" r="3" fill="#10b981" opacity="0.6"/><circle cx="130" cy="60" r="3" fill="#10b981" opacity="0.6"/>
+      <circle cx="160" cy="90" r="3" fill="#10b981" opacity="0.6"/><circle cx="200" cy="50" r="3" fill="#10b981" opacity="0.6"/>
+      <circle cx="80" cy="100" r="3" fill="#10b981" opacity="0.6"/><circle cx="120" cy="120" r="3" fill="#10b981" opacity="0.6"/>
+      <circle cx="170" cy="70" r="3" fill="#10b981" opacity="0.6"/><circle cx="230" cy="85" r="3" fill="#10b981" opacity="0.6"/>
+      <circle cx="90" cy="140" r="3" fill="#10b981" opacity="0.6"/><circle cx="150" cy="110" r="3" fill="#10b981" opacity="0.6"/>
+      <!-- Mix in middle -->
+      <circle cx="190" cy="140" r="3" fill="#f85149" opacity="0.4"/><circle cx="210" cy="130" r="3" fill="#10b981" opacity="0.4"/>
+      <circle cx="260" cy="145" r="3" fill="#f85149" opacity="0.4"/><circle cx="280" cy="120" r="3" fill="#10b981" opacity="0.4"/>
+      <circle cx="320" cy="160" r="3" fill="#f85149" opacity="0.4"/><circle cx="350" cy="150" r="3" fill="#f85149" opacity="0.4"/>
+      <!-- High fare outlier -->
+      <circle cx="150" cy="20" r="4" fill="#10b981" opacity="0.8"/>
+      <!-- Legend -->
+      <circle cx="310" cy="25" r="4" fill="#f85149"/><text x="320" y="29" fill="#8892a4" font-size="8" font-family="Fira Code">Died</text>
+      <circle cx="310" cy="40" r="4" fill="#10b981"/><text x="320" y="44" fill="#8892a4" font-size="8" font-family="Fira Code">Survived</text>
+    </svg>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;">Green dots (survived) cluster at higher fares. Red dots (died) cluster at low fares. Fare = proxy for class = survival!</div>
+  </div>
 </div>
 
-<div class="card card-analyze">
-  <h3>Technique 5: Correlation — Which Features Matter Most?</h3>
-  <p><strong>Correlation</strong> measures how strongly two variables are connected (-1 to +1). Values close to ±1 = strong relationship.</p>
+<div class="card card-plt">
+  <h3>Subplots — Multiple Charts Together</h3>
+  <p>Use <strong>subplots</strong> to put multiple charts side by side for comparison:</p>
 
-  <div class="code-line"># Correlation with Survived
-print("Correlation with Survival:")
-print(df.corr()["Survived"].sort_values(ascending=False).round(3))</div>
+  <div class="code-line">fig, axes = plt.subplots(2, 2, figsize=(12, 10))
 
-  <div class="output-console">Correlation with Survival:
-Survived      1.000    ← itself
-Sex           0.543    ← STRONGEST! Female = more likely to survive
-Fare          0.257    ← Higher fare = more likely
-Parch         0.082    ← Slight positive
-Embarked_Q   -0.004    ← Almost none
-SibSp        -0.035    ← Slight negative
-Age          -0.064    ← Slight negative
-Embarked_S   -0.156    ← Boarding at Southampton = less likely
-Pclass       -0.338    ← Higher class number = LESS likely (3rd class worst)</div>
+# Top-left: Survival count
+df["Survived"].value_counts().plot.bar(ax=axes[0,0], color=["#f85149","#10b981"])
+axes[0,0].set_title("Survival Count")
+axes[0,0].set_xticklabels(["Died","Survived"], rotation=0)
 
-  <div style="background:rgba(139,92,246,0.08);border:2px solid rgba(139,92,246,0.25);border-radius:12px;padding:20px;margin:16px 0;">
-    <div style="font-family:'Fredoka One',cursive;color:var(--analyze-purple);font-size:16px;margin-bottom:12px;">📊 Top Survival Predictors (by correlation)</div>
-    <div style="display:grid;gap:6px;">
-      <div style="display:flex;align-items:center;gap:10px;"><div style="width:60%;max-width:200px;height:24px;background:linear-gradient(90deg,var(--clean-green),var(--clean-teal));border-radius:6px;display:flex;align-items:center;padding-left:8px;font-family:'Fira Code',monospace;font-size:11px;color:#000;">0.543</div><span style="font-size:14px;">Sex (Female +++ )</span></div>
-      <div style="display:flex;align-items:center;gap:10px;"><div style="width:38%;max-width:200px;height:24px;background:rgba(16,185,129,0.5);border-radius:6px;display:flex;align-items:center;padding-left:8px;font-family:'Fira Code',monospace;font-size:11px;color:#000;">−0.338</div><span style="font-size:14px;">Pclass (1st class ++ )</span></div>
-      <div style="display:flex;align-items:center;gap:10px;"><div style="width:30%;max-width:200px;height:24px;background:rgba(16,185,129,0.35);border-radius:6px;display:flex;align-items:center;padding-left:8px;font-family:'Fira Code',monospace;font-size:11px;color:#fff;">0.257</div><span style="font-size:14px;">Fare (Higher fare + )</span></div>
+# Top-right: Age histogram
+axes[0,1].hist(df["Age"], bins=25, color="#3b82f6", edgecolor="black", alpha=0.7)
+axes[0,1].set_title("Age Distribution")
+
+# Bottom-left: Fare by class (box plot)
+df.boxplot(column="Fare", by="Pclass", ax=axes[1,0])
+axes[1,0].set_title("Fare by Class")
+
+# Bottom-right: Survival by gender
+gender_surv = df.groupby("Sex")["Survived"].mean()
+axes[1,1].bar(["Male","Female"], gender_surv.values, color=["#f85149","#10b981"])
+axes[1,1].set_title("Survival Rate by Gender")
+
+plt.tight_layout()
+plt.show()</div>
+
+  <div class="tip-box tip-box-plt">🖼️ <strong>subplots(rows, cols)</strong> creates a grid. <code>axes[row, col]</code> accesses each cell. Use <code>plt.tight_layout()</code> to prevent overlap. This is how professionals show multiple insights on one page!</div>
+</div>
+
+
+<!-- ╔══════════ SEABORN ══════════╗ -->
+<div class="section-divider div-sns">
+  <div class="label">🌊 Seaborn — Beautiful Charts, Less Code</div>
+</div>
+
+<div class="card card-sns">
+  <h3>Seaborn = Matplotlib + Beauty + Statistics</h3>
+  <p><strong>Seaborn</strong> is built on top of Matplotlib but makes charts <strong>prettier</strong> and <strong>smarter</strong> with less code. It's designed for statistical visualization.</p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0;">
+    <div style="background:rgba(249,115,22,0.06);border:2px solid rgba(249,115,22,0.2);border-radius:10px;padding:16px;">
+      <div style="font-family:'Fredoka One',cursive;color:var(--plt-orange);font-size:15px;margin-bottom:8px;">Matplotlib (4 lines)</div>
+      <div class="code-line" style="font-size:12px;margin:8px 0;">plt.figure(figsize=(8,5))
+plt.bar(["Died","Survived"],[549,342])
+plt.title("Survival")
+plt.show()</div>
+    </div>
+    <div style="background:rgba(16,185,129,0.06);border:2px solid rgba(16,185,129,0.2);border-radius:10px;padding:16px;">
+      <div style="font-family:'Fredoka One',cursive;color:var(--sns-green);font-size:15px;margin-bottom:8px;">Seaborn (1 line!)</div>
+      <div class="code-line" style="font-size:12px;margin:8px 0;">sns.countplot(x="Survived", data=df,
+             palette=["#f85149","#10b981"])</div>
+      <div style="font-size:12px;color:var(--sns-green);margin-top:6px;">Auto-counts, auto-labels, beautiful by default!</div>
     </div>
   </div>
 </div>
 
-<div class="card card-analyze">
-  <h3>Technique 6: Filtering — Ask Specific Questions</h3>
+<div class="card card-sns">
+  <h3>Seaborn Chart 1: countplot — Category Counts</h3>
 
-  <div class="code-line"># How many children (age < 12) survived?
-children = df[df["Age"] < 12]
-print(f"Children on board: {len(children)}")
-print(f"Children survived: {children['Survived'].sum()}")
-print(f"Child survival rate: {children['Survived'].mean()*100:.1f}%")
+  <div class="code-line"># Count of passengers by class, colored by survival
+sns.countplot(x="Pclass", hue="Survived", data=df,
+              palette={0: "#f85149", 1: "#10b981"})
+plt.title("Passengers per Class — Survived vs Died")
+plt.xlabel("Passenger Class")
+plt.legend(["Died", "Survived"])
+plt.show()</div>
 
-# Rich passengers (fare > 100)
-rich = df[df["Fare"] > 100]
-print(f"\nRich passengers: {len(rich)}")
-print(f"Rich survival rate: {rich['Survived'].mean()*100:.1f}%")
-
-# Women in 3rd class
-women_3rd = df[(df["Sex"] == 1) & (df["Pclass"] == 3)]
-print(f"\nWomen in 3rd class: {len(women_3rd)}")
-print(f"Their survival rate: {women_3rd['Survived'].mean()*100:.1f}%")</div>
-
-  <div class="output-console">Children on board: 68
-Children survived: 40
-Child survival rate: 58.8%
-
-Rich passengers: 34
-Rich survival rate: 73.5%
-
-Women in 3rd class: 144
-Their survival rate: 50.0%</div>
+  <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:16px;margin:16px 0;">
+    <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--sns-green);text-align:center;margin-bottom:8px;">Passengers per Class — Survived vs Died</div>
+    <div class="bar-row" style="height:110px;">
+      <div class="bar-col"><div class="bar" style="height:55%;background:#f85149;"></div><div class="bar-label" style="font-size:9px;">1st<br>Died<br>80</div></div>
+      <div class="bar-col"><div class="bar" style="height:68%;background:var(--sns-green);"></div><div class="bar-label" style="font-size:9px;">1st<br>Surv<br>136</div></div>
+      <div class="bar-col" style="border-left:1px solid rgba(255,255,255,0.06);padding-left:4px;"><div class="bar" style="height:60%;background:#f85149;"></div><div class="bar-label" style="font-size:9px;">2nd<br>Died<br>97</div></div>
+      <div class="bar-col"><div class="bar" style="height:43%;background:var(--sns-green);"></div><div class="bar-label" style="font-size:9px;">2nd<br>Surv<br>87</div></div>
+      <div class="bar-col" style="border-left:1px solid rgba(255,255,255,0.06);padding-left:4px;"><div class="bar" style="height:100%;background:#f85149;"></div><div class="bar-label" style="font-size:9px;">3rd<br>Died<br>372</div></div>
+      <div class="bar-col"><div class="bar" style="height:52%;background:var(--sns-green);"></div><div class="bar-label" style="font-size:9px;">3rd<br>Surv<br>119</div></div>
+    </div>
+    <div style="font-size:13px;color:var(--muted);text-align:center;margin-top:6px;">3rd class had the most passengers AND the most deaths. 1st class had more survivors than deaths!</div>
+  </div>
 </div>
 
-<!-- Interactive: Ask the Data -->
-<div class="demo-box box-analyze">
-  <div class="box-title">🔍 Interactive: Ask the Titanic Data</div>
-  <p style="text-align:center;color:var(--muted);margin-bottom:16px;">Pick a question and see the Pandas code + answer!</p>
+<div class="card card-sns">
+  <h3>Seaborn Chart 2: boxplot — Fare Distribution by Class</h3>
+  <p>Box plots show the <strong>median</strong>, <strong>spread</strong> (25th-75th percentile), and <strong>outliers</strong> all at once!</p>
+
+  <div class="code-line">plt.figure(figsize=(10, 6))
+sns.boxplot(x="Pclass", y="Fare", data=df,
+            palette=["#3b82f6", "#f97316", "#8b5cf6"])
+plt.title("Fare Distribution by Passenger Class")
+plt.xlabel("Class")
+plt.ylabel("Fare (£)")
+plt.show()</div>
+
+  <div style="background:rgba(0,0,0,0.3);border-radius:12px;padding:20px;margin:16px 0;">
+    <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--sns-green);text-align:center;margin-bottom:16px;">Reading a Box Plot</div>
+    <div style="display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center;">
+      <svg viewBox="0 0 100 200" xmlns="http://www.w3.org/2000/svg" style="width:80px;">
+        <!-- Whisker top -->
+        <line x1="50" y1="10" x2="50" y2="50" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+        <line x1="35" y1="10" x2="65" y2="10" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+        <!-- Box -->
+        <rect x="25" y="50" width="50" height="80" rx="4" fill="rgba(59,130,246,0.2)" stroke="#3b82f6" stroke-width="2"/>
+        <!-- Median line -->
+        <line x1="25" y1="85" x2="75" y2="85" stroke="#f97316" stroke-width="3"/>
+        <!-- Whisker bottom -->
+        <line x1="50" y1="130" x2="50" y2="170" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+        <line x1="35" y1="170" x2="65" y2="170" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+        <!-- Outlier -->
+        <circle cx="50" cy="190" r="4" fill="#f85149" opacity="0.7"/>
+      </svg>
+      <div style="font-size:14px;color:var(--muted);line-height:2.4;">
+        <span style="color:rgba(255,255,255,0.3);">━━━</span> <strong style="color:#fff;">Whisker top</strong> — Maximum (excluding outliers)<br>
+        <span style="color:var(--chart-blue);">▮ Box top</span> — <strong style="color:#fff;">75th percentile</strong> (Q3)<br>
+        <span style="color:var(--plt-orange);">━━━</span> <strong style="color:#fff;">Median</strong> (50th percentile)<br>
+        <span style="color:var(--chart-blue);">▮ Box bottom</span> — <strong style="color:#fff;">25th percentile</strong> (Q1)<br>
+        <span style="color:rgba(255,255,255,0.3);">━━━</span> <strong style="color:#fff;">Whisker bottom</strong> — Minimum<br>
+        <span style="color:#f85149;">●</span> <strong style="color:#fff;">Outliers</strong> — Extreme values outside 1.5×IQR
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card card-sns">
+  <h3>Seaborn Chart 3: heatmap — Correlation Matrix</h3>
+  <p>The <strong>correlation heatmap</strong> shows how every feature relates to every other feature at once. Darker color = stronger relationship.</p>
+
+  <div class="code-line">plt.figure(figsize=(10, 8))
+sns.heatmap(df.corr(), annot=True, cmap="coolwarm", center=0,
+            fmt=".2f", linewidths=0.5, square=True)
+plt.title("Feature Correlation Heatmap")
+plt.tight_layout()
+plt.show()</div>
+
+  <div style="background:rgba(0,0,0,0.3);border-radius:12px;padding:20px;margin:16px 0;">
+    <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--sns-green);text-align:center;margin-bottom:12px;">Correlation with Survived</div>
+    <div style="display:grid;gap:4px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-family:'Fira Code',monospace;font-size:12px;color:var(--muted);min-width:90px;">Sex</span>
+        <div style="flex:1;height:24px;border-radius:4px;overflow:hidden;background:rgba(255,255,255,0.05);">
+          <div style="width:54.3%;height:100%;background:linear-gradient(90deg,rgba(16,185,129,0.3),var(--sns-green));display:flex;align-items:center;padding-left:8px;font-family:'Fira Code',monospace;font-size:11px;color:#fff;">+0.54</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-family:'Fira Code',monospace;font-size:12px;color:var(--muted);min-width:90px;">Fare</span>
+        <div style="flex:1;height:24px;border-radius:4px;overflow:hidden;background:rgba(255,255,255,0.05);">
+          <div style="width:25.7%;height:100%;background:rgba(16,185,129,0.4);display:flex;align-items:center;padding-left:8px;font-family:'Fira Code',monospace;font-size:11px;color:#fff;">+0.26</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-family:'Fira Code',monospace;font-size:12px;color:var(--muted);min-width:90px;">Pclass</span>
+        <div style="flex:1;height:24px;border-radius:4px;overflow:hidden;background:rgba(255,255,255,0.05);">
+          <div style="width:33.8%;height:100%;background:rgba(248,81,73,0.4);display:flex;align-items:center;padding-left:8px;font-family:'Fira Code',monospace;font-size:11px;color:#fff;">−0.34</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-family:'Fira Code',monospace;font-size:12px;color:var(--muted);min-width:90px;">Age</span>
+        <div style="flex:1;height:24px;border-radius:4px;overflow:hidden;background:rgba(255,255,255,0.05);">
+          <div style="width:6.4%;height:100%;background:rgba(248,81,73,0.25);min-width:40px;display:flex;align-items:center;padding-left:8px;font-family:'Fira Code',monospace;font-size:11px;color:#fff;">−0.06</div>
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:12px;font-size:13px;color:var(--muted);">
+      <span style="color:var(--sns-green);">Green = positive</span> (more = more likely to survive) &nbsp;
+      <span style="color:#f85149;">Red = negative</span> (more = less likely)
+    </div>
+  </div>
+
+  <div class="tip-box tip-box-sns">🟥 <strong>Reading the Heatmap:</strong> Sex has the strongest positive correlation (+0.54 = being female helps survival). Pclass has a negative correlation (-0.34 = higher class NUMBER means lower survival, since 3rd class = 3).</div>
+</div>
+
+<div class="card card-sns">
+  <h3>More Seaborn Charts for Titanic</h3>
+
+  <div class="code-line"># Pairplot — scatter matrix of multiple features
+sns.pairplot(df[["Survived","Age","Fare","Pclass"]],
+             hue="Survived", palette={0:"#f85149",1:"#10b981"})
+plt.suptitle("Pairwise Relationships", y=1.02)
+plt.show()
+
+# KDE plot — smooth distribution
+sns.kdeplot(data=df, x="Age", hue="Survived",
+            fill=True, palette={0:"#f85149",1:"#10b981"})
+plt.title("Age Distribution: Survived vs Died")
+plt.show()
+
+# Violin plot — box plot + KDE combined
+sns.violinplot(x="Pclass", y="Age", hue="Survived", data=df,
+               split=True, palette={0:"#f85149",1:"#10b981"})
+plt.title("Age Distribution by Class & Survival")
+plt.show()</div>
+</div>
+
+<!-- Interactive: Build a Chart -->
+<div class="demo-box box-sns">
+  <div class="box-title">🌊 Interactive: Seaborn Chart Gallery</div>
+  <p style="text-align:center;color:var(--muted);margin-bottom:16px;">Pick a chart type to see the code + what it reveals about Titanic!</p>
   <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
-    <button class="btn btn-analyze" onclick="askData('overall')">Overall Survival</button>
-    <button class="btn btn-analyze" onclick="askData('gender')">By Gender</button>
-    <button class="btn btn-analyze" onclick="askData('class')">By Class</button>
-    <button class="btn btn-analyze" onclick="askData('age')">By Age Group</button>
-    <button class="btn btn-analyze" onclick="askData('family')">Family Size</button>
-    <button class="btn btn-analyze" onclick="askData('fare')">By Fare</button>
+    <button class="btn btn-sns" onclick="showSns('countplot')">countplot</button>
+    <button class="btn btn-sns" onclick="showSns('boxplot')">boxplot</button>
+    <button class="btn btn-sns" onclick="showSns('heatmap')">heatmap</button>
+    <button class="btn btn-sns" onclick="showSns('kdeplot')">kdeplot</button>
+    <button class="btn btn-sns" onclick="showSns('violinplot')">violinplot</button>
+    <button class="btn btn-sns" onclick="showSns('pairplot')">pairplot</button>
   </div>
-  <div id="analyzeOutput"></div>
+  <div id="snsOutput"></div>
 </div>
 
 
-<!-- ╔══════════ PUTTING IT ALL TOGETHER ══════════╗ -->
-<div class="section-divider div-viz">
-  <div class="label">🚢 The Complete Pipeline</div>
+<!-- ╔══════════ EDA WORKFLOW ══════════╗ -->
+<div class="section-divider div-eda">
+  <div class="label">🔍 The EDA Workflow</div>
 </div>
 
-<div class="card card-viz">
-  <h3>From CSV to Insights — The Full Journey</h3>
+<div class="card card-eda">
+  <h3>EDA = Exploratory Data Analysis</h3>
+  <p><strong>EDA</strong> is the systematic process of investigating your data <em>before</em> building any model. It's how you discover patterns, spot problems, and form hypotheses. Every data scientist does this FIRST.</p>
 
   <div style="display:grid;gap:8px;margin:20px 0;">
     <div style="display:flex;gap:0;align-items:center;">
-      <div style="background:var(--data-blue);color:#fff;padding:12px 18px;border-radius:10px 0 0 10px;font-family:'Fredoka One',cursive;font-size:14px;min-width:120px;text-align:center;">1. Load</div>
-      <div style="flex:1;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:0 10px 10px 0;padding:10px 16px;font-size:14px;color:var(--muted);">pd.read_csv() → 891 rows × 12 columns</div>
+      <div style="background:var(--chart-blue);color:#fff;padding:12px 16px;border-radius:10px 0 0 10px;font-family:'Fredoka One',cursive;font-size:13px;min-width:110px;text-align:center;">1. Shape</div>
+      <div style="flex:1;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.15);border-radius:0 10px 10px 0;padding:10px 14px;font-size:14px;color:var(--muted);">df.shape, df.info() — How big? What types?</div>
     </div>
     <div style="display:flex;gap:0;align-items:center;">
-      <div style="background:var(--load-orange);color:#000;padding:12px 18px;border-radius:10px 0 0 10px;font-family:'Fredoka One',cursive;font-size:14px;min-width:120px;text-align:center;">2. Explore</div>
-      <div style="flex:1;background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.2);border-radius:0 10px 10px 0;padding:10px 16px;font-size:14px;color:var(--muted);">head(), shape, describe(), isnull() → found 3 problems</div>
+      <div style="background:var(--plt-orange);color:#000;padding:12px 16px;border-radius:10px 0 0 10px;font-family:'Fredoka One',cursive;font-size:13px;min-width:110px;text-align:center;">2. Summary</div>
+      <div style="flex:1;background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.15);border-radius:0 10px 10px 0;padding:10px 14px;font-size:14px;color:var(--muted);">df.describe(), df.head() — Quick stats at a glance</div>
     </div>
     <div style="display:flex;gap:0;align-items:center;">
-      <div style="background:var(--clean-green);color:#000;padding:12px 18px;border-radius:10px 0 0 10px;font-family:'Fredoka One',cursive;font-size:14px;min-width:120px;text-align:center;">3. Clean</div>
-      <div style="flex:1;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:0 10px 10px 0;padding:10px 16px;font-size:14px;color:var(--muted);">Fill missing, drop useless, encode text → 891 × 9, all clean</div>
+      <div style="background:#f85149;color:#fff;padding:12px 16px;border-radius:10px 0 0 10px;font-family:'Fredoka One',cursive;font-size:13px;min-width:110px;text-align:center;">3. Missing</div>
+      <div style="flex:1;background:rgba(248,81,73,0.08);border:1px solid rgba(248,81,73,0.15);border-radius:0 10px 10px 0;padding:10px 14px;font-size:14px;color:var(--muted);">df.isnull().sum(), sns.heatmap(df.isnull()) — Where are the holes?</div>
     </div>
     <div style="display:flex;gap:0;align-items:center;">
-      <div style="background:var(--analyze-purple);color:#fff;padding:12px 18px;border-radius:10px 0 0 10px;font-family:'Fredoka One',cursive;font-size:14px;min-width:120px;text-align:center;">4. Analyze</div>
-      <div style="flex:1;background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.2);border-radius:0 10px 10px 0;padding:10px 16px;font-size:14px;color:var(--muted);">value_counts, groupby, corr, filter → found survival patterns</div>
+      <div style="background:var(--sns-green);color:#000;padding:12px 16px;border-radius:10px 0 0 10px;font-family:'Fredoka One',cursive;font-size:13px;min-width:110px;text-align:center;">4. Distributions</div>
+      <div style="flex:1;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.15);border-radius:0 10px 10px 0;padding:10px 14px;font-size:14px;color:var(--muted);">Histograms, KDE, box plots — How is each feature spread?</div>
     </div>
     <div style="display:flex;gap:0;align-items:center;">
-      <div style="background:var(--viz-rose);color:#fff;padding:12px 18px;border-radius:10px 0 0 10px;font-family:'Fredoka One',cursive;font-size:14px;min-width:120px;text-align:center;">5. Insights</div>
-      <div style="flex:1;background:rgba(244,63,94,0.08);border:1px solid rgba(244,63,94,0.2);border-radius:0 10px 10px 0;padding:10px 16px;font-size:14px;color:var(--muted);">Women 74% vs men 19%. 1st class 63% vs 3rd class 24%. Data tells the story!</div>
+      <div style="background:var(--eda-purple);color:#fff;padding:12px 16px;border-radius:10px 0 0 10px;font-family:'Fredoka One',cursive;font-size:13px;min-width:110px;text-align:center;">5. Relationships</div>
+      <div style="flex:1;background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.15);border-radius:0 10px 10px 0;padding:10px 14px;font-size:14px;color:var(--muted);">Correlation heatmap, scatter plots, pairplot — How do features interact?</div>
+    </div>
+    <div style="display:flex;gap:0;align-items:center;">
+      <div style="background:var(--eda-pink);color:#fff;padding:12px 16px;border-radius:10px 0 0 10px;font-family:'Fredoka One',cursive;font-size:13px;min-width:110px;text-align:center;">6. Target</div>
+      <div style="flex:1;background:rgba(236,72,153,0.08);border:1px solid rgba(236,72,153,0.15);border-radius:0 10px 10px 0;padding:10px 14px;font-size:14px;color:var(--muted);">groupby + target, countplots with hue — What predicts the outcome?</div>
+    </div>
+    <div style="display:flex;gap:0;align-items:center;">
+      <div style="background:var(--insight-rose);color:#fff;padding:12px 16px;border-radius:10px 0 0 10px;font-family:'Fredoka One',cursive;font-size:13px;min-width:110px;text-align:center;">7. Insights</div>
+      <div style="flex:1;background:rgba(244,63,94,0.08);border:1px solid rgba(244,63,94,0.15);border-radius:0 10px 10px 0;padding:10px 14px;font-size:14px;color:var(--muted);">Write down 3-5 key findings. This guides your ML model later!</div>
+    </div>
+  </div>
+</div>
+
+<div class="card card-eda">
+  <h3>The Complete EDA Template (Copy This!)</h3>
+
+  <div class="code-line" style="font-size:13px;"># ═══════ COMPLETE EDA TEMPLATE ═══════
+
+# 1. SHAPE & TYPES
+print("Shape:", df.shape)
+print(df.info())
+
+# 2. QUICK SUMMARY
+print(df.describe())
+print(df.head())
+
+# 3. MISSING VALUES
+print(df.isnull().sum())
+sns.heatmap(df.isnull(), cbar=True, yticklabels=False, cmap="viridis")
+plt.title("Missing Value Map")
+plt.show()
+
+# 4. DISTRIBUTIONS (one histogram per numeric column)
+df.hist(figsize=(12, 8), bins=20, edgecolor="black")
+plt.suptitle("Feature Distributions", y=1.02)
+plt.tight_layout()
+plt.show()
+
+# 5. CORRELATIONS
+plt.figure(figsize=(10, 8))
+sns.heatmap(df.corr(), annot=True, cmap="coolwarm", center=0)
+plt.title("Correlation Matrix")
+plt.show()
+
+# 6. TARGET ANALYSIS
+for col in ["Sex", "Pclass", "SibSp"]:
+    sns.countplot(x=col, hue="Survived", data=df)
+    plt.title(f"Survival by {col}")
+    plt.show()
+
+# 7. KEY INSIGHTS
+print("""
+INSIGHTS:
+1. Women survived at 4× the rate of men (74% vs 19%)
+2. 1st class survived at 2.6× the rate of 3rd class
+3. Children (age < 12) had 59% survival — higher than adults
+4. Higher fare = higher survival (proxy for class)
+5. Sex is the strongest predictor (correlation +0.54)
+""")</div>
+
+  <div class="tip-box tip-box-eda">📋 <strong>Save This Template!</strong> You can use this exact EDA workflow on ANY dataset — Kaggle competitions, school projects, or real-world data. Just change the column names. The 7 steps stay the same!</div>
+</div>
+
+<!-- Interactive: EDA Steps -->
+<div class="demo-box box-eda">
+  <div class="box-title">🔍 Interactive: Walk Through the EDA</div>
+  <p style="text-align:center;color:var(--muted);margin-bottom:16px;">Click each EDA step and see it applied to Titanic!</p>
+  <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+    <button class="btn btn-eda" onclick="edaStep('shape')">1. Shape</button>
+    <button class="btn btn-eda" onclick="edaStep('summary')">2. Summary</button>
+    <button class="btn btn-eda" onclick="edaStep('missing')">3. Missing</button>
+    <button class="btn btn-eda" onclick="edaStep('dist')">4. Distributions</button>
+    <button class="btn btn-eda" onclick="edaStep('corr')">5. Correlations</button>
+    <button class="btn btn-eda" onclick="edaStep('target')">6. Target</button>
+    <button class="btn btn-eda" onclick="edaStep('insights')">7. Insights</button>
+  </div>
+  <div id="edaOutput"></div>
+</div>
+
+
+<!-- ╔══════════ TITANIC INSIGHTS STORY ══════════╗ -->
+<div class="section-divider div-insight">
+  <div class="label">🚢 The Titanic Story — Told by Data</div>
+</div>
+
+<div class="card card-insight">
+  <h3>Putting It All Together — Numbers + Charts = The Story</h3>
+  <p>After a full EDA, here's the story the Titanic data tells us:</p>
+
+  <div style="display:grid;gap:14px;margin:20px 0;">
+    <div style="background:rgba(236,72,153,0.06);border:2px solid rgba(236,72,153,0.2);border-radius:12px;padding:20px;display:flex;gap:16px;align-items:start;">
+      <div style="font-size:32px;min-width:40px;">👩</div>
+      <div>
+        <strong style="color:var(--eda-pink);font-size:17px;">"Women and Children First" Was Real</strong>
+        <p style="margin-top:6px;">Women: 74% survival vs Men: 19%. Children under 12: 59%. The lifeboat policy was followed — and the data proves it with bar charts showing the dramatic gap.</p>
+      </div>
+    </div>
+    <div style="background:rgba(59,130,246,0.06);border:2px solid rgba(59,130,246,0.2);border-radius:12px;padding:20px;display:flex;gap:16px;align-items:start;">
+      <div style="font-size:32px;min-width:40px;">💰</div>
+      <div>
+        <strong style="color:var(--chart-blue);font-size:17px;">Money Bought Survival</strong>
+        <p style="margin-top:6px;">1st class: 63% survival. 3rd class: 24%. The box plots show 1st class fares were 10× higher — and those passengers had cabins closer to the lifeboats. The scatter plot makes this painfully visible.</p>
+      </div>
+    </div>
+    <div style="background:rgba(16,185,129,0.06);border:2px solid rgba(16,185,129,0.2);border-radius:12px;padding:20px;display:flex;gap:16px;align-items:start;">
+      <div style="font-size:32px;min-width:40px;">📊</div>
+      <div>
+        <strong style="color:var(--sns-green);font-size:17px;">The Heatmap Confirms the Pattern</strong>
+        <p style="margin-top:6px;">Sex (+0.54) and Pclass (−0.34) are the top 2 correlations with survival. The heatmap reveals this at a glance — no need to check each variable individually.</p>
+      </div>
+    </div>
+    <div style="background:rgba(139,92,246,0.06);border:2px solid rgba(139,92,246,0.2);border-radius:12px;padding:20px;display:flex;gap:16px;align-items:start;">
+      <div style="font-size:32px;min-width:40px;">🤖</div>
+      <div>
+        <strong style="color:var(--eda-purple);font-size:17px;">EDA Guides Your ML Model</strong>
+        <p style="margin-top:6px;">Now we know: Sex and Pclass are the most important features. Age matters for children. Fare is redundant with Pclass. This tells us WHICH features to use when we build a prediction model next!</p>
+      </div>
     </div>
   </div>
 
-  <div style="background:rgba(0,0,0,0.3);border-radius:14px;padding:24px;margin:20px 0;">
-    <div style="font-family:'Fredoka One',cursive;font-size:18px;color:var(--viz-rose);margin-bottom:16px;text-align:center;">🏆 What We Discovered About the Titanic</div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;">
-      <div style="background:rgba(16,185,129,0.1);border:2px solid rgba(16,185,129,0.3);border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-family:'Fredoka One',cursive;font-size:28px;color:var(--clean-green);">38.4%</div>
-        <div style="font-size:13px;color:var(--muted);">Overall survival rate</div>
-      </div>
-      <div style="background:rgba(236,72,153,0.1);border:2px solid rgba(236,72,153,0.3);border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-family:'Fredoka One',cursive;font-size:28px;color:var(--analyze-pink);">74.2%</div>
-        <div style="font-size:13px;color:var(--muted);">Female survival</div>
-      </div>
-      <div style="background:rgba(248,81,73,0.1);border:2px solid rgba(248,81,73,0.3);border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-family:'Fredoka One',cursive;font-size:28px;color:#f85149;">18.9%</div>
-        <div style="font-size:13px;color:var(--muted);">Male survival</div>
-      </div>
-      <div style="background:rgba(59,130,246,0.1);border:2px solid rgba(59,130,246,0.3);border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-family:'Fredoka One',cursive;font-size:28px;color:var(--data-blue);">96.8%</div>
-        <div style="font-size:13px;color:var(--muted);">1st class women survived</div>
-      </div>
-      <div style="background:rgba(249,115,22,0.1);border:2px solid rgba(249,115,22,0.3);border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-family:'Fredoka One',cursive;font-size:28px;color:var(--load-orange);">13.5%</div>
-        <div style="font-size:13px;color:var(--muted);">3rd class men survived</div>
-      </div>
-      <div style="background:rgba(139,92,246,0.1);border:2px solid rgba(139,92,246,0.3);border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-family:'Fredoka One',cursive;font-size:28px;color:var(--analyze-purple);">0.543</div>
-        <div style="font-size:13px;color:var(--muted);">Sex correlation (strongest)</div>
-      </div>
+  <div style="text-align:center;margin-top:20px;padding:20px;background:rgba(0,0,0,0.3);border-radius:14px;">
+    <div style="font-family:'Fredoka One',cursive;font-size:20px;color:var(--insight-rose);margin-bottom:8px;">The Full Data Science Pipeline</div>
+    <div style="display:flex;gap:0;flex-wrap:wrap;justify-content:center;">
+      <div style="background:var(--chart-blue);color:#fff;padding:8px 14px;border-radius:8px 0 0 8px;font-family:'Fira Code',monospace;font-size:12px;">Load</div>
+      <div style="background:rgba(255,255,255,0.1);color:var(--muted);padding:8px 4px;font-size:14px;">→</div>
+      <div style="background:var(--plt-orange);color:#000;padding:8px 14px;font-family:'Fira Code',monospace;font-size:12px;">Clean</div>
+      <div style="background:rgba(255,255,255,0.1);color:var(--muted);padding:8px 4px;font-size:14px;">→</div>
+      <div style="background:var(--sns-green);color:#000;padding:8px 14px;font-family:'Fira Code',monospace;font-size:12px;border:2px solid #fff;">EDA ← YOU ARE HERE</div>
+      <div style="background:rgba(255,255,255,0.1);color:var(--muted);padding:8px 4px;font-size:14px;">→</div>
+      <div style="background:var(--eda-purple);color:#fff;padding:8px 14px;font-family:'Fira Code',monospace;font-size:12px;">Model</div>
+      <div style="background:rgba(255,255,255,0.1);color:var(--muted);padding:8px 4px;font-size:14px;">→</div>
+      <div style="background:var(--insight-rose);color:#fff;padding:8px 14px;border-radius:0 8px 8px 0;font-family:'Fira Code',monospace;font-size:12px;">Predict</div>
     </div>
   </div>
-
-  <div class="tip-box tip-box-viz">🚀 <strong>Next Steps:</strong> With this clean, analyzed dataset you could now build a <strong>Machine Learning model</strong> to predict survival! That's exactly what Kaggle competitors do — and you just completed the hardest part (data prep takes 80% of the work in real data science!).</div>
 </div>
 
 
@@ -878,8 +873,8 @@ Their survival rate: 50.0%</div>
 
 <div class="quiz-wrap">
   <div class="quiz-header">
-    <h2>Data Science Basics Quiz</h2>
-    <p>15 questions covering Datasets, CSV, Loading, Cleaning &amp; Analysis</p>
+    <h2>Data Viz &amp; EDA Quiz</h2>
+    <p>15 questions covering Charts, Matplotlib, Seaborn &amp; EDA</p>
   </div>
   <div class="quiz-scorebar">
     <div class="score-chip" id="scoreChip">0 / 15</div>
@@ -896,110 +891,89 @@ Their survival rate: 50.0%</div>
 </div>
 
 <script>
-/* ══════════ EXPLORE COMMANDS ══════════ */
-function showExplore(cmd){
-  const out=document.getElementById('exploreOutput');
-  const cmds={
-    head:{code:'df.head()',desc:'Shows first 5 rows — your first look at the actual data!',output:`   Survived  Pclass     Sex   Age  SibSp  Parch    Fare Embarked
-0         0       3    male  22.0      1      0   7.25        S
-1         1       1  female  38.0      1      0  71.28        C
-2         1       3  female  26.0      0      0   7.92        S
-3         1       1  female  35.0      1      0  53.10        S
-4         0       3    male  35.0      0      0   8.05        S`},
-    shape:{code:'df.shape',desc:'Returns (rows, columns) — how big is our dataset',output:`(891, 12)\n\n891 passengers, 12 features about each`},
-    dtypes:{code:'df.dtypes',desc:'Data type of each column — int, float, or object (text)',output:`PassengerId      int64\nSurvived         int64\nPclass           int64\nName            object  ← text!\nSex             object  ← text!\nAge            float64\nSibSp            int64\nParch            int64\nTicket          object  ← text!\nFare           float64\nCabin           object  ← text!\nEmbarked        object  ← text!`},
-    null:{code:'df.isnull().sum()',desc:'Count missing values per column — where is data incomplete?',output:`PassengerId      0\nSurvived         0\nPclass           0\nName             0\nSex              0\nAge            177   ← 😱 20% missing!\nSibSp            0\nParch            0\nTicket           0\nFare             0\nCabin          687   ← 😱 77% missing!\nEmbarked         2`},
-    value:{code:'df["Survived"].value_counts()',desc:'Count each unique value — how many survived vs died?',output:`0    549   ← Died (61.6%)\n1    342   ← Survived (38.4%)\n\nMost passengers did NOT survive.`},
-    unique:{code:'df["Embarked"].unique()',desc:'Show all unique values in a column',output:`['S' 'C' 'Q' nan]\n\nS = Southampton (UK) — most common\nC = Cherbourg (France)\nQ = Queenstown (Ireland)\nnan = 2 passengers have no port listed`}
+/* ══════════ CHART PICKER ══════════ */
+function pickChart(q){
+  const out=document.getElementById('chartPickOutput');
+  const picks={
+    survive:{chart:'Bar Chart',why:'Comparing two categories (Died vs Survived). Bar charts are perfect for counting/comparing groups.',code:'sns.countplot(x="Survived", data=df, palette=["#f85149","#10b981"])\nplt.title("Survived vs Died")',emoji:'📊'},
+    ages:{chart:'Histogram',why:'Showing how ages are distributed — which ages are most common? Histograms show the shape of a single numeric variable.',code:'plt.hist(df["Age"], bins=30, color="#3b82f6", edgecolor="black")\nplt.title("Age Distribution")',emoji:'📉'},
+    fare_class:{chart:'Box Plot',why:'Comparing fare distributions ACROSS classes. Box plots show median, spread, and outliers for each group.',code:'sns.boxplot(x="Pclass", y="Fare", data=df)\nplt.title("Fare Distribution by Class")',emoji:'📦'},
+    corr:{chart:'Heatmap',why:'Showing ALL correlations at once. The color grid lets you instantly spot which features relate to survival.',code:'sns.heatmap(df.corr(), annot=True, cmap="coolwarm")\nplt.title("Correlation Matrix")',emoji:'🟥'},
+    age_fare:{chart:'Scatter Plot',why:'Showing the relationship between two numeric variables. Each dot is one passenger — position shows their age AND fare.',code:'plt.scatter(df["Age"], df["Fare"], c=df["Survived"].map({0:"red",1:"green"}), alpha=0.5)\nplt.title("Age vs Fare")',emoji:'⚬'},
+    embark:{chart:'Pie Chart',why:'Showing parts of a whole — what % boarded at each port? Pie charts work when you have 2-5 categories.',code:'df["Embarked"].value_counts().plot.pie(autopct="%1.1f%%")\nplt.title("Boarding Port Distribution")',emoji:'🥧'}
   };
-  const c=cmds[cmd];
-  out.innerHTML=`<div class="result-box" style="border-color:var(--load-orange);">
-    <div style="background:var(--load-orange);color:#000;padding:8px 12px;border-radius:8px;margin-bottom:8px;font-weight:700;font-size:14px;">Python Code:</div>
-    <div class="code-line" style="font-size:14px;">${c.code}</div>
-    <div style="font-size:14px;color:var(--muted);margin:8px 0;padding:0 4px;">${c.desc}</div>
-    <div style="background:var(--clean-green);color:#000;padding:8px 12px;border-radius:8px;margin:12px 0 8px;font-weight:700;font-size:14px;">Output:</div>
-    <div class="output-console" style="font-size:12px;">${c.output}</div>
+  const p=picks[q];
+  out.innerHTML=`<div class="result-box" style="border-color:var(--chart-blue);">
+    <div style="text-align:center;margin-bottom:12px;">
+      <span style="font-size:36px;">${p.emoji}</span>
+      <div style="font-family:'Fredoka One',cursive;font-size:22px;color:var(--chart-blue);margin-top:4px;">Use a ${p.chart}!</div>
+    </div>
+    <div style="font-size:15px;color:var(--muted);text-align:center;margin-bottom:14px;">${p.why}</div>
+    <div class="code-line" style="font-size:13px;">${p.code}</div>
   </div>`;
 }
 
-/* ══════════ CLEANING STEPS ══════════ */
-function showClean(step){
-  const out=document.getElementById('cleanOutput');
+/* ══════════ SEABORN GALLERY ══════════ */
+function showSns(type){
+  const out=document.getElementById('snsOutput');
+  const charts={
+    countplot:{name:'sns.countplot()',code:'sns.countplot(x="Pclass", hue="Survived", data=df,\n             palette={0:"#f85149", 1:"#10b981"})\nplt.title("Survival by Class")',what:'Counts occurrences in each category, split by another variable (hue). Perfect for: "How many survived in each class?"',when:'Comparing counts across categories.'},
+    boxplot:{name:'sns.boxplot()',code:'sns.boxplot(x="Pclass", y="Fare", data=df,\n           palette=["#3b82f6","#f97316","#8b5cf6"])\nplt.title("Fare by Class")',what:'Shows median, quartiles, range, and outliers. Instantly see how spread out and skewed the data is per group.',when:'Comparing distributions across groups. Spotting outliers.'},
+    heatmap:{name:'sns.heatmap()',code:'sns.heatmap(df.corr(), annot=True, cmap="coolwarm",\n           center=0, fmt=".2f")\nplt.title("Correlation Matrix")',what:'Color grid showing correlation between every pair of features. Blue = positive, red = negative. annot=True shows numbers.',when:'Finding which features relate to each other and to the target.'},
+    kdeplot:{name:'sns.kdeplot()',code:'sns.kdeplot(data=df, x="Age", hue="Survived",\n           fill=True, palette={0:"#f85149",1:"#10b981"})\nplt.title("Age Distribution by Survival")',what:'Smooth density curve — like a histogram but continuous. fill=True fills the area. hue splits by a category.',when:'Comparing distribution shapes between groups.'},
+    violinplot:{name:'sns.violinplot()',code:'sns.violinplot(x="Pclass", y="Age", hue="Survived",\n              data=df, split=True,\n              palette={0:"#f85149",1:"#10b981"})\nplt.title("Age by Class & Survival")',what:'Combines box plot + KDE. split=True puts both groups side-by-side inside each violin. Shows distribution shape beautifully.',when:'Comparing distributions with more detail than box plots.'},
+    pairplot:{name:'sns.pairplot()',code:'sns.pairplot(df[["Survived","Age","Fare","Pclass"]],\n            hue="Survived",\n            palette={0:"#f85149",1:"#10b981"})\nplt.show()',what:'Scatter plot matrix — every feature vs every other feature, colored by the target. Diagonal shows each feature\'s distribution.',when:'Getting a complete overview of all relationships at once. Start of EDA.'}
+  };
+  const c=charts[type];
+  out.innerHTML=`<div class="result-box" style="border-color:var(--sns-green);">
+    <div style="font-family:'Fredoka One',cursive;font-size:18px;color:var(--sns-green);margin-bottom:8px;">${c.name}</div>
+    <div class="code-line" style="font-size:13px;">${c.code}</div>
+    <div style="margin-top:14px;display:grid;gap:10px;">
+      <div style="background:rgba(16,185,129,0.06);border-radius:8px;padding:12px;"><strong style="color:var(--sns-green);">What it does:</strong> <span style="color:var(--muted);">${c.what}</span></div>
+      <div style="background:rgba(59,130,246,0.06);border-radius:8px;padding:12px;"><strong style="color:var(--chart-blue);">When to use:</strong> <span style="color:var(--muted);">${c.when}</span></div>
+    </div>
+  </div>`;
+}
+
+/* ══════════ EDA STEPS ══════════ */
+function edaStep(step){
+  const out=document.getElementById('edaOutput');
   const steps={
-    missing:{title:'Check Missing Values',code:'df.isnull().sum()',output:'Age        177  (19.9% missing)\nCabin      687  (77.1% missing!)\nEmbarked     2  (0.2% missing)\n\nEverything else: 0 missing ✅',note:'Three columns need fixing. Age has 20% missing, Cabin has 77% missing (too much!), Embarked has only 2 missing.'},
-    fillage:{title:'Fill Age with Median',code:'df["Age"].fillna(df["Age"].median(), inplace=True)\nprint("Age median:", df["Age"].median())  # 28.0\nprint("Age missing now:", df["Age"].isnull().sum())',output:'Age median: 28.0\nAge missing now: 0  ✅',note:'Why median (28) instead of mean (29.7)? Median isn\'t affected by that 80-year-old outlier. It\'s a safer central value.'},
-    dropcabin:{title:'Drop Cabin Column',code:'df.drop("Cabin", axis=1, inplace=True)\nprint("Columns:", len(df.columns))  # 11 → 10',output:'Columns: 11 (was 12)\nCabin column removed! ✅',note:'77% missing = unsalvageable. If we tried to fill 687 values, we\'d be making up data. Better to drop it entirely.'},
-    encode:{title:'Encode Text → Numbers',code:'df["Sex"] = df["Sex"].map({"male": 0, "female": 1})\ndf = pd.get_dummies(df, columns=["Embarked"], drop_first=True)',output:'Sex: male→0, female→1\nEmbarked → Embarked_Q (0/1), Embarked_S (0/1)\n\nAll text columns now numeric! ✅',note:'ML models can\'t read text. map() works for 2 categories. get_dummies() (one-hot encoding) works for 3+ categories.'},
-    final:{title:'Final Validation',code:'print(df.isnull().sum().sum())  # Total missing\nprint(df.shape)\nprint(df.dtypes)',output:'Total missing values: 0 ✅\nShape: (891, 9)\nAll dtypes: int64 or float64 ✅\n\n🎉 DATA IS CLEAN AND READY!',note:'From 12 messy columns to 9 clean, all-numeric columns. Zero missing values. This data is now ready for analysis and ML!'}
+    shape:{title:'Step 1: Shape & Types',code:'print(df.shape)\nprint(df.dtypes)',output:'(891, 9)\n\nSurvived      int64\nPclass        int64\nSex           int64\nAge         float64\nSibSp         int64\nParch         int64\nFare        float64\nEmbarked_Q    bool\nEmbarked_S    bool',insight:'891 rows × 9 columns. All numeric (we encoded text last time). Mix of int and float.'},
+    summary:{title:'Step 2: Quick Summary',code:'df.describe().round(2)',output:'       Survived  Pclass   Sex    Age  SibSp  Parch   Fare\nmean      0.38    2.31  0.35  29.36   0.52   0.38  32.20\nstd       0.49    0.84  0.48  13.02   1.10   0.81  49.69\nmin       0.00    1.00  0.00   0.42   0.00   0.00   0.00\n50%       0.00    3.00  0.00  28.00   0.00   0.00  14.45\nmax       1.00    3.00  1.00  80.00   8.00   6.00 512.33',insight:'Mean survival: 38%. Mean age: ~29. Fares range from £0 to £512 — massive inequality! Median class is 3 (most were 3rd class).'},
+    missing:{title:'Step 3: Missing Values',code:'print(df.isnull().sum())\n# Visualize: sns.heatmap(df.isnull())',output:'Survived      0\nPclass        0\nSex           0\nAge           0   ← We fixed this!\nSibSp         0\nParch         0\nFare          0\nEmbarked_Q    0\nEmbarked_S    0\n\nTotal: 0 missing ✅',insight:'All clean! We fixed Age (filled with median), dropped Cabin (77% missing), and filled Embarked (mode) last session.'},
+    dist:{title:'Step 4: Distributions',code:'# Histogram for each numeric column\ndf.hist(figsize=(12,8), bins=20, edgecolor="black")\nplt.tight_layout()\n\n# Or individual: sns.histplot(df["Age"], kde=True)',output:'Key observations from histograms:\n• Age: bell-shaped, peak at 20-30\n• Fare: heavily right-skewed (most cheap, few very expensive)\n• SibSp/Parch: most are 0 (traveling alone)\n• Pclass: most are class 3\n• Survived: more 0s than 1s (61% died)',insight:'Fare is extremely skewed — a few rich passengers paid 10-50× more. Most features are NOT normally distributed.'},
+    corr:{title:'Step 5: Correlations',code:'sns.heatmap(df.corr(), annot=True, cmap="coolwarm", center=0)',output:'Top correlations with Survived:\n  Sex:     +0.54  (strongest!)\n  Fare:    +0.26\n  Parch:   +0.08\n  Pclass:  −0.34  (2nd strongest)\n  Embarked_S: −0.16\n  Age:     −0.06  (almost none!)\n\nSurprise: Fare & Pclass corr = −0.55 (redundant!)',insight:'Sex and Pclass dominate. Age barely matters overall. Fare and Pclass are highly correlated — they measure the same thing (wealth). Use one, not both.'},
+    target:{title:'Step 6: Target Analysis',code:'# Survival by each key feature\nfor col in ["Sex","Pclass"]:\n    sns.countplot(x=col, hue="Survived", data=df)\n    plt.show()\n\ndf.groupby(["Pclass","Sex"])["Survived"].mean()',output:'Cross-tab: Pclass × Sex → Survival Rate\n1st Female: 96.8%  ← Nearly all survived!\n2nd Female: 92.1%\n3rd Female: 50.0%\n1st Male:   36.8%\n2nd Male:   15.7%\n3rd Male:   13.5%  ← Worst odds',insight:'The countplots show the dramatic gender gap visually. Cross-tabulation reveals 1st-class women had 97% survival vs 3rd-class men at 14%. Class × Gender is the story.'},
+    insights:{title:'Step 7: Key Insights',code:'# Write your findings!\nprint("""\n🔍 TITANIC EDA — KEY FINDINGS\n═══════════════════════════════\n""")',output:'🔍 TITANIC EDA — KEY FINDINGS\n═══════════════════════════════\n1. Sex is #1 predictor (+0.54 correlation)\n2. Class is #2 predictor (−0.34)\n3. 1st-class women: 97% survived\n4. 3rd-class men: only 14% survived\n5. Age barely matters overall — but children do better\n6. Fare & Pclass are redundant (corr −0.55)\n7. For ML: use Sex, Pclass, Age, SibSp as features\n   → Drop Fare (redundant with Pclass)',insight:'These 7 insights will directly guide our ML model selection and feature engineering. EDA isn\'t just exploration — it\'s STRATEGY for modeling!'}
   };
   const s=steps[step];
-  out.innerHTML=`<div class="result-box" style="border-color:var(--clean-green);">
-    <div style="font-family:'Fredoka One',cursive;font-size:18px;color:var(--clean-green);margin-bottom:10px;">🧹 ${s.title}</div>
+  out.innerHTML=`<div class="result-box" style="border-color:var(--eda-purple);">
+    <div style="font-family:'Fredoka One',cursive;font-size:18px;color:var(--eda-purple);margin-bottom:10px;">🔍 ${s.title}</div>
     <div class="code-line" style="font-size:13px;">${s.code}</div>
     <div class="output-console" style="font-size:12px;">${s.output}</div>
-    <div style="margin-top:12px;padding:10px 14px;background:rgba(16,185,129,0.06);border-radius:8px;font-size:14px;color:var(--muted);">💡 ${s.note}</div>
-  </div>`;
-}
-
-/* ══════════ ASK THE DATA ══════════ */
-function askData(q){
-  const out=document.getElementById('analyzeOutput');
-  const qs={
-    overall:{title:'Overall Survival Rate',code:'print(df["Survived"].value_counts())\nprint(f"Rate: {df[\'Survived\'].mean()*100:.1f}%")',output:'Died:     549 (61.6%)\nSurvived: 342 (38.4%)\n\nMost passengers did NOT survive the Titanic.',visual:`<div style="display:flex;gap:3px;height:40px;border-radius:8px;overflow:hidden;margin-top:12px;">
-      <div style="flex:61.6;background:#f85149;display:flex;align-items:center;justify-content:center;font-family:'Fira Code',monospace;font-size:12px;color:#fff;">Died 61.6%</div>
-      <div style="flex:38.4;background:var(--clean-green);display:flex;align-items:center;justify-content:center;font-family:'Fira Code',monospace;font-size:12px;color:#fff;">Survived 38.4%</div></div>`},
-    gender:{title:'Survival by Gender',code:'df.groupby("Sex")["Survived"].mean() * 100',output:'Male (0):   18.9% survived\nFemale (1): 74.2% survived\n\n"Women and children first!" — confirmed by data.',visual:`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;">
-      <div style="background:rgba(248,81,73,0.1);border:2px solid rgba(248,81,73,0.3);border-radius:8px;padding:12px;text-align:center;">
-        <div style="font-size:12px;color:var(--muted);">Male</div><div style="font-family:'Fredoka One',cursive;font-size:28px;color:#f85149;">18.9%</div></div>
-      <div style="background:rgba(16,185,129,0.1);border:2px solid rgba(16,185,129,0.3);border-radius:8px;padding:12px;text-align:center;">
-        <div style="font-size:12px;color:var(--muted);">Female</div><div style="font-family:'Fredoka One',cursive;font-size:28px;color:var(--clean-green);">74.2%</div></div></div>`},
-    class:{title:'Survival by Ticket Class',code:'df.groupby("Pclass")["Survived"].mean() * 100',output:'1st Class: 63.0% survived\n2nd Class: 47.3% survived\n3rd Class: 24.2% survived\n\nWealth = access to lifeboats.',visual:`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px;">
-      <div style="background:rgba(16,185,129,0.1);border:2px solid rgba(16,185,129,0.3);border-radius:8px;padding:12px;text-align:center;">
-        <div style="font-size:12px;color:var(--muted);">1st Class</div><div style="font-family:'Fredoka One',cursive;font-size:24px;color:var(--clean-green);">63.0%</div></div>
-      <div style="background:rgba(249,115,22,0.1);border:2px solid rgba(249,115,22,0.3);border-radius:8px;padding:12px;text-align:center;">
-        <div style="font-size:12px;color:var(--muted);">2nd Class</div><div style="font-family:'Fredoka One',cursive;font-size:24px;color:var(--load-orange);">47.3%</div></div>
-      <div style="background:rgba(248,81,73,0.1);border:2px solid rgba(248,81,73,0.3);border-radius:8px;padding:12px;text-align:center;">
-        <div style="font-size:12px;color:var(--muted);">3rd Class</div><div style="font-family:'Fredoka One',cursive;font-size:24px;color:#f85149;">24.2%</div></div></div>`},
-    age:{title:'Survival by Age Group',code:'df["AgeGroup"] = pd.cut(df["Age"], bins=[0,12,18,35,60,100],\n  labels=["Child","Teen","Young Adult","Adult","Senior"])\ndf.groupby("AgeGroup")["Survived"].mean()*100',output:'Child (0-12):       58.8% ← Kids had best odds!\nTeen (13-18):       40.3%\nYoung Adult (19-35): 35.8%\nAdult (36-60):       39.0%\nSenior (60+):        26.8% ← Elderly had worst odds',visual:`<div style="display:flex;gap:4px;margin-top:12px;height:30px;border-radius:6px;overflow:hidden;">
-      <div style="flex:58.8;background:var(--clean-green);display:flex;align-items:center;justify-content:center;font-size:10px;color:#000;font-weight:700;">Child 59%</div>
-      <div style="flex:40.3;background:rgba(16,185,129,0.5);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;">Teen 40%</div>
-      <div style="flex:35.8;background:var(--load-orange);display:flex;align-items:center;justify-content:center;font-size:10px;color:#000;font-weight:700;">YA 36%</div>
-      <div style="flex:39;background:rgba(249,115,22,0.6);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;">Adult 39%</div>
-      <div style="flex:26.8;background:#f85149;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;">Senior 27%</div></div>`},
-    family:{title:'Survival by Family Size',code:'df["FamilySize"] = df["SibSp"] + df["Parch"] + 1\ndf.groupby("FamilySize")["Survived"].mean()*100',output:'Alone (1):     30.4% ← Traveling alone = worst\nSmall (2-4):   ~55%  ← Small families = best!\nLarge (5+):    ~16%  ← Large families = very bad\n\nSweet spot: 2-4 person families survived most!',visual:''},
-    fare:{title:'Survival by Fare Range',code:'df["FareGroup"] = pd.cut(df["Fare"],\n  bins=[0,10,30,100,600],\n  labels=["Budget","Economy","Business","Luxury"])\ndf.groupby("FareGroup")["Survived"].mean()*100',output:'Budget (₹0-10):     20.3%\nEconomy (₹10-30):   41.0%\nBusiness (₹30-100): 57.5%\nLuxury (₹100+):     73.5%\n\nMore money = more survival. Harsh reality.',visual:`<div style="display:flex;gap:4px;margin-top:12px;height:30px;border-radius:6px;overflow:hidden;">
-      <div style="flex:1;background:#f85149;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;">Budget 20%</div>
-      <div style="flex:1;background:var(--load-orange);display:flex;align-items:center;justify-content:center;font-size:10px;color:#000;font-weight:700;">Economy 41%</div>
-      <div style="flex:1;background:rgba(16,185,129,0.6);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;">Business 58%</div>
-      <div style="flex:1;background:var(--clean-green);display:flex;align-items:center;justify-content:center;font-size:10px;color:#000;font-weight:700;">Luxury 74%</div></div>`}
-  };
-  const a=qs[q];
-  out.innerHTML=`<div class="result-box" style="border-color:var(--analyze-purple);">
-    <div style="font-family:'Fredoka One',cursive;font-size:18px;color:var(--analyze-purple);margin-bottom:10px;">🔍 ${a.title}</div>
-    <div class="code-line" style="font-size:13px;">${a.code}</div>
-    <div class="output-console" style="font-size:12px;">${a.output}</div>
-    ${a.visual}
+    <div style="margin-top:12px;padding:12px;background:rgba(139,92,246,0.06);border-radius:8px;font-size:14px;color:var(--muted);">💡 <strong style="color:#fff;">Insight:</strong> ${s.insight}</div>
   </div>`;
 }
 
 
 /* ══════════ QUIZ ══════════ */
 const QS=[
-  {q:'What does CSV stand for?',opts:['Computer Saved Values','Comma-Separated Values','Code System Variables','Column-Sorted Values'],ans:1,explain:'CSV = Comma-Separated Values — plain text file with commas between each value!'},
-  {q:'Which Pandas function loads a CSV file?',opts:['pd.load_csv()','pd.open_csv()','pd.read_csv()','pd.import_csv()'],ans:2,explain:'pd.read_csv("filename.csv") loads a CSV file into a DataFrame!'},
-  {q:'What does df.shape return?',opts:['Column names','(rows, columns)','Data types','First 5 rows'],ans:1,explain:'df.shape returns a tuple like (891, 12) — the number of rows and columns!'},
-  {q:'What does df.head() show?',opts:['Last 5 rows','All rows','First 5 rows','Column names only'],ans:2,explain:'df.head() shows the first 5 rows — your first look at the actual data!'},
-  {q:'What does NaN mean in a dataset?',opts:['Not a Number (missing data)','Negative and Null','New and Nice','No answer needed'],ans:0,explain:'NaN = Not a Number — Python\'s way of representing missing data!'},
-  {q:'In the Titanic dataset, what does Survived=1 mean?',opts:['Died','Survived','Unknown','First class'],ans:1,explain:'Survived=1 means the passenger survived, Survived=0 means they did not.'},
-  {q:'If 77% of a column is missing, you should:',opts:['Fill with mean','Fill with 0','Drop the column','Ignore it'],ans:2,explain:'If >50% of a column is missing, it\'s usually better to drop it entirely rather than make up data!'},
-  {q:'Why use median instead of mean to fill missing Age?',opts:['Median is faster','Median isn\'t affected by outliers','Median is always bigger','No reason'],ans:1,explain:'Median is resistant to outliers. The 80-year-old would skew the mean but not the median!'},
-  {q:'What does df.isnull().sum() do?',opts:['Counts total rows','Counts missing values per column','Sums all values','Checks for duplicates'],ans:1,explain:'isnull() marks True where data is missing, then sum() counts the Trues per column!'},
-  {q:'What does df.describe() show?',opts:['Only column names','Count, mean, std, min, max, quartiles','Just the mean','Data types'],ans:1,explain:'describe() gives you a full statistical summary — count, mean, std, min, 25%, 50%, 75%, max!'},
-  {q:'What Titanic survival rate did women have?',opts:['18.9%','38.4%','74.2%','96.8%'],ans:2,explain:'Women had a 74.2% survival rate vs men at 18.9% — "women and children first!"'},
-  {q:'What does groupby() do?',opts:['Groups data and applies functions per group','Sorts the data','Removes groups','Creates new columns'],ans:0,explain:'groupby() splits data into groups, applies a function (like mean), and combines results!'},
-  {q:'Correlation of 0.543 between Sex and Survived means:',opts:['No relationship','Weak negative','Moderate positive — being female helped survival','Perfect correlation'],ans:2,explain:'0.543 is a moderate positive correlation — the strongest predictor of survival was being female!'},
-  {q:'pd.get_dummies() is used for:',opts:['Creating dummy data','One-hot encoding categories','Removing columns','Filling missing values'],ans:1,explain:'get_dummies() converts categorical columns (like "S","C","Q") into separate 0/1 columns — one-hot encoding!'},
-  {q:'Which class had the highest survival rate?',opts:['3rd class','2nd class','1st class','All were equal'],ans:2,explain:'1st class had 63% survival, 2nd had 47%, 3rd had only 24%. Wealth = access to lifeboats!'}
+  {q:'What library is Python\'s core plotting library?',opts:['Seaborn','Pandas','Matplotlib','NumPy'],ans:2,explain:'Matplotlib is the foundation — plt.bar(), plt.hist(), plt.scatter(). Seaborn is built on top of it!'},
+  {q:'Which chart compares counts across categories?',opts:['Scatter plot','Bar chart','Line chart','Box plot'],ans:1,explain:'Bar charts are perfect for comparing quantities across categories — like survived vs died!'},
+  {q:'Which chart shows how values are distributed?',opts:['Pie chart','Bar chart','Histogram','Scatter plot'],ans:2,explain:'Histograms show the distribution shape — which ranges are most/least common.'},
+  {q:'Which chart shows the relationship between 2 numeric variables?',opts:['Bar chart','Histogram','Box plot','Scatter plot'],ans:3,explain:'Scatter plots put one variable on x-axis, another on y-axis. Each point is one data entry!'},
+  {q:'What does a box plot show?',opts:['Only the mean','Median, quartiles, and outliers','Just the maximum','Category counts'],ans:1,explain:'Box plots show median (middle line), IQR (box), range (whiskers), and outliers (dots)!'},
+  {q:'What does a heatmap typically display in EDA?',opts:['Missing values only','Feature distributions','Correlation between features','Raw data rows'],ans:2,explain:'In EDA, heatmaps show the correlation matrix — how every feature relates to every other feature!'},
+  {q:'plt.figure(figsize=(10, 6)) sets the:',opts:['Font size','Chart colors','Canvas size in inches','Number of bars'],ans:2,explain:'figsize=(width, height) in inches sets how big the overall chart canvas is!'},
+  {q:'What does sns stand for in "import seaborn as sns"?',opts:['Statistical Notation System','It\'s just a convention (Samuel Norman Seaborn)','Super Number Stats','Seaborn Number System'],ans:1,explain:'sns is just the conventional alias — named after a TV character! Just like pd for pandas and np for numpy.'},
+  {q:'sns.countplot automatically does what?',opts:['Calculates correlation','Counts values and draws bars','Creates scatter plots','Shows distributions'],ans:1,explain:'countplot counts how many times each value appears and draws a bar for each — no manual counting needed!'},
+  {q:'What does "hue" do in Seaborn charts?',opts:['Changes the background','Splits data by color using another column','Makes it darker','Adds a title'],ans:1,explain:'hue splits the chart by another variable using different colors — like coloring by Survived vs Died!'},
+  {q:'What is EDA?',opts:['Emergency Data Access','Exploratory Data Analysis','Excel Data Application','External Data API'],ans:1,explain:'EDA = Exploratory Data Analysis — the systematic investigation of data before building models!'},
+  {q:'In EDA, what should you check FIRST?',opts:['Build an ML model','Check correlations','Check shape, types, and missing values','Create a heatmap'],ans:2,explain:'Always start with shape, types, and missing values — you need to know what you\'re working with before anything else!'},
+  {q:'What does annot=True do in sns.heatmap?',opts:['Adds annotations/numbers in each cell','Removes axis labels','Changes colors','Makes it animated'],ans:0,explain:'annot=True displays the actual correlation values inside each cell of the heatmap!'},
+  {q:'In the Titanic, which feature has the strongest correlation with Survived?',opts:['Age','Fare','Sex','Parch'],ans:2,explain:'Sex has a correlation of +0.54 with Survived — the strongest of all features. Being female dramatically increased survival!'},
+  {q:'Why is Fare redundant with Pclass in Titanic?',opts:['They have the same values','They are highly correlated (−0.55)','They are both text','They have the same mean'],ans:1,explain:'Fare and Pclass have −0.55 correlation — they measure the same thing (wealth/class). Using both adds no new information!'}
 ];
 
 let correct=0,answered=0;
@@ -1038,9 +1012,9 @@ function answer(qi,chosen){
 function showFinal(){
   const fb=document.getElementById('finalBox'),fs=document.getElementById('finalScore'),fst=document.getElementById('finalStars'),fm=document.getElementById('finalMsg');
   fs.textContent=`${correct} / ${QS.length}`;
-  if(correct===QS.length){fs.className='final-score perfect';fst.textContent='⭐⭐⭐';fm.textContent='PERFECT SCORE!\nData Scientist in the Making!\nYou mastered the full pipeline! 🚢';}
-  else if(correct>=12){fs.className='final-score great';fst.textContent='⭐⭐';fm.textContent='EXCELLENT WORK!\nYou can load, clean & analyze data!\nReady for ML!';}
-  else{fs.className='final-score okish';fst.textContent='⭐';fm.textContent='GOOD START!\nReview the Titanic walkthrough\nand try the interactives again!';}
+  if(correct===QS.length){fs.className='final-score perfect';fst.textContent='⭐⭐⭐';fm.textContent='PERFECT SCORE!\nVisualization Virtuoso!\nYou see the data clearly now! 📊';}
+  else if(correct>=12){fs.className='final-score great';fst.textContent='⭐⭐';fm.textContent='EXCELLENT WORK!\nYou can read and create charts!\nReady for ML modeling!';}
+  else{fs.className='final-score okish';fst.textContent='⭐';fm.textContent='GOOD START!\nReview the chart types and\ntry the EDA walkthrough again!';}
   fb.classList.add('show');
 }
 buildQuiz();
