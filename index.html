@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Data Science Basics — From Raw Data to Insights (Titanic Dataset)</title>
+<title>Linear & Logistic Regression — Your First Real ML Algorithms</title>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --data-blue:#3b82f6;--data-sky:#0ea5e9;
-  --load-orange:#f97316;--load-amber:#f59e0b;
-  --clean-green:#10b981;--clean-teal:#14b8a6;
-  --analyze-purple:#8b5cf6;--analyze-pink:#ec4899;
-  --viz-rose:#f43f5e;
+  --lin-blue:#3b82f6;--lin-cyan:#06b6d4;
+  --log-orange:#f97316;--log-amber:#f59e0b;
+  --sig-purple:#8b5cf6;--sig-pink:#ec4899;
+  --good-green:#10b981;--good-teal:#14b8a6;
+  --err-rose:#f43f5e;--err-red:#ef4444;
   --bg:#0f1117;--bg2:#161b27;--text:#e8eaf0;--muted:#8892a4;
   --card:rgba(255,255,255,0.04);--radius:16px;
 }
@@ -21,100 +21,81 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);over
 
 .hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px;
   background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(59,130,246,0.18) 0%,transparent 70%),
-             radial-gradient(ellipse 50% 40% at 80% 90%,rgba(16,185,129,0.12) 0%,transparent 60%),var(--bg);
+             radial-gradient(ellipse 50% 40% at 20% 80%,rgba(249,115,22,0.12) 0%,transparent 60%),
+             radial-gradient(ellipse 40% 30% at 80% 70%,rgba(139,92,246,0.1) 0%,transparent 50%),var(--bg);
   position:relative;overflow:hidden;}
-.hero-badge{font-family:'Fira Code',monospace;font-size:12px;color:var(--data-blue);background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);padding:6px 16px;border-radius:50px;letter-spacing:2px;margin-bottom:24px;display:inline-block;}
-.hero h1{font-family:'Fredoka One',cursive;font-size:clamp(2.2rem,6vw,4.5rem);line-height:1.05;
-  background:linear-gradient(135deg,#fff 15%,var(--data-blue) 30%,var(--load-orange) 50%,var(--clean-green) 70%,var(--analyze-purple) 85%);
+.hero-badge{font-family:'Fira Code',monospace;font-size:12px;color:var(--lin-blue);background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);padding:6px 16px;border-radius:50px;letter-spacing:2px;margin-bottom:24px;display:inline-block;}
+.hero h1{font-family:'Fredoka One',cursive;font-size:clamp(2.2rem,6vw,4.8rem);line-height:1.05;
+  background:linear-gradient(135deg,#fff 15%,var(--lin-blue) 35%,var(--log-orange) 60%,var(--sig-purple) 85%);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px;}
-.hero p{font-size:20px;color:var(--muted);max-width:720px;line-height:1.7;margin-bottom:36px;}
+.hero p{font-size:20px;color:var(--muted);max-width:740px;line-height:1.7;margin-bottom:36px;}
 .topic-pills{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:900px;}
 .pill{font-family:'Fira Code',monospace;font-size:13px;padding:8px 18px;border-radius:50px;font-weight:500;border:1px solid;}
-.pill-data{color:var(--data-blue);border-color:rgba(59,130,246,0.5);background:rgba(59,130,246,0.1);}
-.pill-load{color:var(--load-orange);border-color:rgba(249,115,22,0.5);background:rgba(249,115,22,0.1);}
-.pill-clean{color:var(--clean-green);border-color:rgba(16,185,129,0.5);background:rgba(16,185,129,0.1);}
-.pill-analyze{color:var(--analyze-purple);border-color:rgba(139,92,246,0.5);background:rgba(139,92,246,0.1);}
-.pill-viz{color:var(--viz-rose);border-color:rgba(244,63,94,0.5);background:rgba(244,63,94,0.1);}
+.pill-lin{color:var(--lin-blue);border-color:rgba(59,130,246,0.5);background:rgba(59,130,246,0.1);}
+.pill-log{color:var(--log-orange);border-color:rgba(249,115,22,0.5);background:rgba(249,115,22,0.1);}
+.pill-sig{color:var(--sig-purple);border-color:rgba(139,92,246,0.5);background:rgba(139,92,246,0.1);}
+.pill-good{color:var(--good-green);border-color:rgba(16,185,129,0.5);background:rgba(16,185,129,0.1);}
 .float-code{position:absolute;font-family:'Fira Code',monospace;font-size:11px;color:rgba(255,255,255,0.05);pointer-events:none;user-select:none;white-space:nowrap;}
 .wrapper{max-width:920px;margin:0 auto;padding:0 20px 100px;}
 
 .section-divider{display:flex;align-items:center;gap:14px;margin:70px 0 28px;}
 .section-divider .label{font-family:'Fredoka One',cursive;font-size:26px;white-space:nowrap;}
 .section-divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--accent,rgba(255,255,255,0.1)),transparent);}
-.div-data .label{color:var(--data-blue);}.div-data{--accent:rgba(59,130,246,0.4);}
-.div-load .label{color:var(--load-orange);}.div-load{--accent:rgba(249,115,22,0.4);}
-.div-clean .label{color:var(--clean-green);}.div-clean{--accent:rgba(16,185,129,0.4);}
-.div-analyze .label{color:var(--analyze-purple);}.div-analyze{--accent:rgba(139,92,246,0.4);}
-.div-viz .label{color:var(--viz-rose);}.div-viz{--accent:rgba(244,63,94,0.4);}
+.div-lin .label{color:var(--lin-blue);}.div-lin{--accent:rgba(59,130,246,0.4);}
+.div-log .label{color:var(--log-orange);}.div-log{--accent:rgba(249,115,22,0.4);}
+.div-sig .label{color:var(--sig-purple);}.div-sig{--accent:rgba(139,92,246,0.4);}
+.div-cmp .label{color:var(--good-green);}.div-cmp{--accent:rgba(16,185,129,0.4);}
 .div-quiz .label{color:#f472b6;}.div-quiz{--accent:rgba(244,114,182,0.4);}
 
 .card{background:var(--card);border:1px solid rgba(255,255,255,0.07);border-radius:var(--radius);padding:28px 32px;margin-bottom:20px;position:relative;overflow:hidden;}
 .card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--stripe,rgba(255,255,255,0.15)),transparent);}
-.card-data::before{--stripe:rgba(59,130,246,0.6);}
-.card-load::before{--stripe:rgba(249,115,22,0.6);}
-.card-clean::before{--stripe:rgba(16,185,129,0.6);}
-.card-analyze::before{--stripe:rgba(139,92,246,0.6);}
-.card-viz::before{--stripe:rgba(244,63,94,0.6);}
+.card-lin::before{--stripe:rgba(59,130,246,0.6);}
+.card-log::before{--stripe:rgba(249,115,22,0.6);}
+.card-sig::before{--stripe:rgba(139,92,246,0.6);}
+.card-cmp::before{--stripe:rgba(16,185,129,0.6);}
 .card h3{font-family:'Fredoka One',cursive;font-size:20px;margin-bottom:12px;}
-.card-data h3{color:var(--data-blue);}
-.card-load h3{color:var(--load-orange);}
-.card-clean h3{color:var(--clean-green);}
-.card-analyze h3{color:var(--analyze-purple);}
-.card-viz h3{color:var(--viz-rose);}
+.card-lin h3{color:var(--lin-blue);}
+.card-log h3{color:var(--log-orange);}
+.card-sig h3{color:var(--sig-purple);}
+.card-cmp h3{color:var(--good-green);}
 .card p,.card li{font-size:17px;line-height:1.75;color:rgba(255,255,255,0.72);}
 .card strong{color:#fff;}
-.tip-box{background:rgba(59,130,246,0.06);border-left:3px solid var(--data-blue);border-radius:8px;padding:13px 16px;margin-top:16px;font-size:16px;color:rgba(255,255,255,0.65);}
-.tip-box-load{background:rgba(249,115,22,0.06);border-left-color:var(--load-orange);}
-.tip-box-clean{background:rgba(16,185,129,0.06);border-left-color:var(--clean-green);}
-.tip-box-analyze{background:rgba(139,92,246,0.06);border-left-color:var(--analyze-purple);}
-.tip-box-viz{background:rgba(244,63,94,0.06);border-left-color:var(--viz-rose);}
-.code-line{font-family:'Fira Code',monospace;background:#0a0f1a;border:1px solid rgba(255,255,255,0.1);padding:14px 18px;border-radius:10px;font-size:15px;color:#7ee787;margin:12px 0;white-space:pre-wrap;line-height:1.6;}
-.output-console{background:#000;border:2px solid rgba(126,231,135,0.3);border-radius:10px;padding:16px;font-family:'Fira Code',monospace;color:#7ee787;font-size:13px;min-height:60px;margin-top:12px;line-height:1.8;overflow-x:auto;}
+.tip-box{background:rgba(59,130,246,0.06);border-left:3px solid var(--lin-blue);border-radius:8px;padding:13px 16px;margin-top:16px;font-size:16px;color:rgba(255,255,255,0.65);}
+.tip-box-log{background:rgba(249,115,22,0.06);border-left-color:var(--log-orange);}
+.tip-box-sig{background:rgba(139,92,246,0.06);border-left-color:var(--sig-purple);}
+.tip-box-cmp{background:rgba(16,185,129,0.06);border-left-color:var(--good-green);}
+.code-line{font-family:'Fira Code',monospace;background:#0a0f1a;border:1px solid rgba(255,255,255,0.1);padding:14px 18px;border-radius:10px;font-size:14px;color:#7ee787;margin:12px 0;white-space:pre-wrap;line-height:1.6;overflow-x:auto;}
+.output-console{background:#000;border:2px solid rgba(126,231,135,0.3);border-radius:10px;padding:16px;font-family:'Fira Code',monospace;color:#7ee787;font-size:13px;min-height:60px;margin-top:12px;line-height:1.8;overflow-x:auto;white-space:pre-wrap;}
 
 .demo-box{background:#0a0f1a;border-radius:12px;padding:24px;margin:20px 0;border:2px solid;}
-.box-data{border-color:rgba(59,130,246,0.3);}
-.box-load{border-color:rgba(249,115,22,0.3);}
-.box-clean{border-color:rgba(16,185,129,0.3);}
-.box-analyze{border-color:rgba(139,92,246,0.3);}
+.box-lin{border-color:rgba(59,130,246,0.3);}
+.box-log{border-color:rgba(249,115,22,0.3);}
+.box-sig{border-color:rgba(139,92,246,0.3);}
 .box-title{font-family:'Fredoka One',cursive;font-size:18px;text-align:center;margin-bottom:20px;}
-.box-data .box-title{color:var(--data-blue);}
-.box-load .box-title{color:var(--load-orange);}
-.box-clean .box-title{color:var(--clean-green);}
-.box-analyze .box-title{color:var(--analyze-purple);}
-.btn{padding:12px 32px;border:none;border-radius:50px;font-family:'Nunito',sans-serif;font-size:16px;font-weight:700;cursor:pointer;transition:all 0.3s;margin:8px 4px;}
-.btn-data{background:linear-gradient(135deg,var(--data-blue),var(--data-sky));color:white;}
-.btn-load{background:linear-gradient(135deg,var(--load-orange),var(--load-amber));color:#000;}
-.btn-clean{background:linear-gradient(135deg,var(--clean-green),var(--clean-teal));color:#000;}
-.btn-analyze{background:linear-gradient(135deg,var(--analyze-purple),var(--analyze-pink));color:white;}
+.box-lin .box-title{color:var(--lin-blue);}
+.box-log .box-title{color:var(--log-orange);}
+.box-sig .box-title{color:var(--sig-purple);}
+.btn{padding:12px 28px;border:none;border-radius:50px;font-family:'Nunito',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all 0.3s;margin:6px 4px;}
+.btn-lin{background:linear-gradient(135deg,var(--lin-blue),var(--lin-cyan));color:white;}
+.btn-log{background:linear-gradient(135deg,var(--log-orange),var(--log-amber));color:#000;}
+.btn-sig{background:linear-gradient(135deg,var(--sig-purple),var(--sig-pink));color:white;}
 .btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,0.3);}
 .result-box{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:20px;margin-top:16px;}
 
-/* ── DATA TABLE ── */
-.data-table{width:100%;border-collapse:separate;border-spacing:0;margin:16px 0;border-radius:10px;overflow:hidden;font-size:13px;}
-.data-table th{background:rgba(59,130,246,0.15);color:var(--data-blue);font-weight:700;padding:10px 12px;text-align:left;font-family:'Fira Code',monospace;font-size:12px;border-bottom:2px solid rgba(59,130,246,0.3);}
-.data-table td{padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);}
-.data-table tr:hover td{background:rgba(255,255,255,0.03);}
-.data-table .missing{color:#f85149;font-style:italic;background:rgba(248,81,73,0.08);border-radius:4px;padding:2px 6px;}
-.data-table .fixed{color:#3fb950;font-weight:600;background:rgba(57,185,80,0.08);border-radius:4px;padding:2px 6px;}
-.data-table th.th-load{background:rgba(249,115,22,0.15);color:var(--load-orange);border-bottom-color:rgba(249,115,22,0.3);}
-.data-table th.th-clean{background:rgba(16,185,129,0.15);color:var(--clean-green);border-bottom-color:rgba(16,185,129,0.3);}
-.data-table th.th-analyze{background:rgba(139,92,246,0.15);color:var(--analyze-purple);border-bottom-color:rgba(139,92,246,0.3);}
-
-.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin:20px 0;}
-.concept-card{background:rgba(255,255,255,0.03);border:2px solid;border-radius:12px;padding:20px;text-align:center;transition:all 0.3s;}
-.concept-card:hover{transform:translateY(-3px);box-shadow:0 8px 25px rgba(0,0,0,0.3);}
-
 .formula-box{background:rgba(0,0,0,0.35);border:2px solid;border-radius:14px;padding:24px;text-align:center;margin:20px 0;}
-.formula-box .formula{font-family:'Fira Code',monospace;font-size:clamp(16px,3.5vw,22px);letter-spacing:1px;margin:12px 0;}
+.formula-box.f-lin{border-color:rgba(59,130,246,0.3);}
+.formula-box.f-log{border-color:rgba(249,115,22,0.3);}
+.formula-box.f-sig{border-color:rgba(139,92,246,0.3);}
+.formula-box .formula{font-family:'Fira Code',monospace;font-size:clamp(18px,4vw,26px);letter-spacing:1px;margin:12px 0;color:#fff;}
+.formula-box .formula-label{font-family:'Fredoka One',cursive;font-size:14px;}
+.formula-box .formula-explain{font-size:13px;color:var(--muted);margin-top:10px;line-height:1.7;}
 
-/* ── KAGGLE BADGE ── */
-.kaggle-badge{display:inline-flex;align-items:center;gap:10px;background:rgba(32,191,255,0.08);border:2px solid rgba(32,191,255,0.25);border-radius:14px;padding:16px 24px;margin:16px 0;}
-.kaggle-badge .kb-icon{font-size:32px;}
-.kaggle-badge .kb-text{text-align:left;}
-.kaggle-badge .kb-title{font-family:'Fredoka One',cursive;font-size:16px;color:#20bfff;}
-.kaggle-badge .kb-sub{font-size:13px;color:var(--muted);}
+.slider-row{display:flex;align-items:center;gap:12px;margin:14px 0;flex-wrap:wrap;}
+.slider-row label{font-family:'Fira Code',monospace;font-size:13px;color:var(--muted);min-width:90px;}
+.slider-row input[type="range"]{flex:1;min-width:180px;accent-color:var(--lin-blue);}
+.slider-row .val{font-family:'Fira Code',monospace;font-size:14px;color:#fff;background:rgba(255,255,255,0.06);padding:4px 10px;border-radius:6px;min-width:60px;text-align:center;}
 
-/* ── QUIZ ── */
+/* QUIZ */
 .quiz-wrap{background:var(--card);border:1px solid rgba(244,114,182,0.2);border-radius:20px;padding:36px 32px;margin-top:10px;}
 .quiz-header{text-align:center;margin-bottom:32px;}
 .quiz-header h2{font-family:'Fredoka One',cursive;font-size:2rem;color:#f472b6;margin-bottom:8px;}
@@ -138,748 +119,717 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);over
 .feedback.ok{color:#3fb950;}.feedback.bad{color:#f85149;}
 .final-box{display:none;text-align:center;padding:40px 20px;}.final-box.show{display:block;}
 .final-score{font-family:'Fredoka One',cursive;font-size:clamp(3rem,10vw,5.5rem);margin-bottom:8px;}
-.final-score.perfect{color:var(--clean-green);filter:drop-shadow(0 0 20px rgba(16,185,129,0.5));}
-.final-score.great{color:var(--analyze-purple);filter:drop-shadow(0 0 20px rgba(139,92,246,0.5));}
-.final-score.okish{color:var(--data-blue);}
+.final-score.perfect{color:var(--good-green);filter:drop-shadow(0 0 20px rgba(16,185,129,0.5));}
+.final-score.great{color:var(--sig-purple);filter:drop-shadow(0 0 20px rgba(139,92,246,0.5));}
+.final-score.okish{color:var(--lin-blue);}
 .final-stars{font-size:32px;letter-spacing:8px;margin:12px 0;}
 .final-msg{font-family:'Fira Code',monospace;font-size:13px;color:var(--muted);letter-spacing:1px;line-height:2.2;white-space:pre-line;margin-bottom:24px;}
 @media(max-width:600px){.card{padding:20px 18px;}.quiz-wrap{padding:24px 16px;}}
+
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin:20px 0;}
+.concept-card{background:rgba(255,255,255,0.03);border:2px solid;border-radius:12px;padding:20px;text-align:center;transition:all 0.3s;}
+.concept-card:hover{transform:translateY(-3px);box-shadow:0 8px 25px rgba(0,0,0,0.3);}
+.flow-pipe{display:flex;align-items:center;gap:0;margin:20px 0;flex-wrap:wrap;justify-content:center;}
+.flow-step{padding:10px 16px;font-family:'Fredoka One',cursive;font-size:13px;text-align:center;min-width:80px;}
+.flow-arrow{font-size:18px;color:var(--muted);padding:0 2px;}
+
+.svg-wrap{text-align:center;margin:20px 0;background:rgba(0,0,0,0.25);border-radius:12px;padding:18px;}
+.svg-wrap svg{width:100%;max-width:480px;height:auto;}
 </style>
 </head>
 <body>
 
-<!-- ╔══════════ HERO ══════════╗ -->
 <div class="hero">
   <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none;">
-    <div class="float-code" style="top:12%;left:4%;">import pandas as pd<br>df = pd.read_csv("titanic.csv")<br>df.head()</div>
-    <div class="float-code" style="top:65%;left:2%;">df.isnull().sum()<br>df.fillna(median)<br>df.drop_duplicates()</div>
-    <div class="float-code" style="top:20%;right:3%;">df.describe()<br>df.groupby("Pclass")<br>df.corr()</div>
-    <div class="float-code" style="top:70%;right:4%;">survived: 342<br>died: 549<br>survival_rate: 38.4%</div>
+    <div class="float-code" style="top:12%;left:4%;">y = mx + b<br>y = w·x + b<br>best fit line!</div>
+    <div class="float-code" style="top:65%;left:2%;">sigmoid(z) = 1/(1+e^-z)<br>squashes any number → 0 to 1<br>perfect for probabilities</div>
+    <div class="float-code" style="top:20%;right:3%;">LinearRegression()<br>.fit(X, y)<br>.predict(X_new)</div>
+    <div class="float-code" style="top:70%;right:4%;">if prob > 0.5: class=1<br>else: class=0<br>decision boundary!</div>
   </div>
-  <div class="hero-badge">// PHASE 4 · DATA SCIENCE BASICS //</div>
-  <h1>Data Science:<br>From Raw Data<br>to Real Insights</h1>
-  <p>Today we go end-to-end on a REAL Kaggle dataset — the Titanic. You'll learn what data is, how to load it, how to clean it, and how to pull insights that tell a story. One dataset, one lecture, complete pipeline!</p>
+  <div class="hero-badge">// PHASE 6 · YOUR FIRST REAL ML ALGORITHMS //</div>
+  <h1>Linear &amp; Logistic<br>Regression:<br>The Foundation</h1>
+  <p>Last class you learned WHAT machine learning is. Today you'll build TWO real models from scratch — one that predicts numbers (Linear) and one that predicts categories (Logistic). These two algorithms power 50% of all ML in the real world!</p>
   <div class="topic-pills">
-    <div class="pill pill-data">📊 What is a Dataset?</div>
-    <div class="pill pill-load">📂 Loading CSV &amp; Excel</div>
-    <div class="pill pill-clean">🧹 Cleaning &amp; Preprocessing</div>
-    <div class="pill pill-analyze">🔍 Analysis Techniques</div>
-    <div class="pill pill-viz">🚢 Titanic Case Study</div>
+    <div class="pill pill-lin">📈 Linear Regression</div>
+    <div class="pill pill-log">📊 Logistic Regression</div>
+    <div class="pill pill-sig">🌊 The Sigmoid Function</div>
+    <div class="pill pill-good">🎯 Cost &amp; Gradient Descent</div>
   </div>
 </div>
 
 <div class="wrapper">
 
-<!-- ╔══════════ OUR DATASET ══════════╗ -->
-<div class="section-divider div-data">
-  <div class="label">🚢 Meet Our Dataset</div>
+<!-- ╔══════════ RECAP ══════════╗ -->
+<div class="section-divider div-cmp">
+  <div class="label">📚 Quick Recap</div>
 </div>
 
-<div class="card card-data">
-  <h3>Today's Mission: The Titanic Dataset</h3>
-  <p>We'll use one of the most famous beginner datasets in all of data science — the <strong>Titanic passenger list from Kaggle</strong>. It has everything: numbers, text, missing values, and a powerful question to answer.</p>
+<div class="card card-cmp">
+  <h3>Where We Left Off</h3>
+  <p>Last class we learned that <strong>Supervised Learning</strong> has two flavors:</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0;">
+    <div style="background:rgba(59,130,246,0.08);border:2px solid rgba(59,130,246,0.25);border-radius:12px;padding:18px;text-align:center;">
+      <div style="font-size:28px;">📈</div>
+      <div style="font-family:'Fredoka One',cursive;color:var(--lin-blue);font-size:16px;margin-top:6px;">Regression</div>
+      <div style="font-size:14px;color:var(--muted);margin-top:6px;">Predict a <strong style="color:#fff;">number</strong><br>(price, age, temperature)</div>
+      <div style="font-family:'Fira Code',monospace;font-size:11px;color:var(--lin-blue);margin-top:8px;">→ Linear Regression</div>
+    </div>
+    <div style="background:rgba(249,115,22,0.08);border:2px solid rgba(249,115,22,0.25);border-radius:12px;padding:18px;text-align:center;">
+      <div style="font-size:28px;">📊</div>
+      <div style="font-family:'Fredoka One',cursive;color:var(--log-orange);font-size:16px;margin-top:6px;">Classification</div>
+      <div style="font-size:14px;color:var(--muted);margin-top:6px;">Predict a <strong style="color:#fff;">category</strong><br>(yes/no, spam/ham)</div>
+      <div style="font-family:'Fira Code',monospace;font-size:11px;color:var(--log-orange);margin-top:8px;">→ Logistic Regression</div>
+    </div>
+  </div>
+  <div class="tip-box tip-box-cmp">🎯 <strong>Today's Goal:</strong> Master ONE algorithm for each — and you'll be able to solve a HUGE chunk of real-world ML problems!</div>
+</div>
 
-  <div class="kaggle-badge">
-    <div class="kb-icon">🏆</div>
-    <div class="kb-text">
-      <div class="kb-title">Kaggle: Titanic — Machine Learning from Disaster</div>
-      <div class="kb-sub">891 passengers · 12 columns · The most famous beginner dataset in ML</div>
+
+<!-- ╔══════════ LINEAR REGRESSION ══════════╗ -->
+<div class="section-divider div-lin">
+  <div class="label">📈 Linear Regression</div>
+</div>
+
+<div class="card card-lin">
+  <h3>The Big Idea — Drawing the Best Line</h3>
+  <p><strong>Linear Regression</strong> is the simplest ML algorithm — and one of the most useful. The whole idea is shockingly simple:</p>
+  <p style="margin-top:12px;font-size:18px;text-align:center;color:#fff;background:rgba(59,130,246,0.08);padding:18px;border-radius:10px;border:1px solid rgba(59,130,246,0.25);">
+    "Given a bunch of points on a graph, draw the <strong style="color:var(--lin-blue);">straight line</strong> that fits them best."
+  </p>
+
+  <div class="svg-wrap">
+    <svg viewBox="0 0 480 300" xmlns="http://www.w3.org/2000/svg">
+      <!-- Axes -->
+      <line x1="50" y1="260" x2="450" y2="260" stroke="#444" stroke-width="1.5"/>
+      <line x1="50" y1="260" x2="50" y2="30" stroke="#444" stroke-width="1.5"/>
+      <text x="250" y="290" text-anchor="middle" fill="#8892a4" font-family="Fira Code" font-size="12">House Size (sq ft) →</text>
+      <text x="20" y="150" text-anchor="middle" fill="#8892a4" font-family="Fira Code" font-size="12" transform="rotate(-90 20 150)">Price (₹L) →</text>
+      <!-- Data points (scattered) -->
+      <circle cx="90" cy="230" r="5" fill="#3b82f6"/>
+      <circle cx="130" cy="210" r="5" fill="#3b82f6"/>
+      <circle cx="160" cy="195" r="5" fill="#3b82f6"/>
+      <circle cx="200" cy="170" r="5" fill="#3b82f6"/>
+      <circle cx="230" cy="160" r="5" fill="#3b82f6"/>
+      <circle cx="260" cy="140" r="5" fill="#3b82f6"/>
+      <circle cx="295" cy="125" r="5" fill="#3b82f6"/>
+      <circle cx="330" cy="100" r="5" fill="#3b82f6"/>
+      <circle cx="370" cy="85" r="5" fill="#3b82f6"/>
+      <circle cx="410" cy="60" r="5" fill="#3b82f6"/>
+      <!-- Best fit line -->
+      <line x1="70" y1="245" x2="430" y2="50" stroke="#06b6d4" stroke-width="3" stroke-linecap="round"/>
+      <!-- Annotations -->
+      <text x="250" y="35" text-anchor="middle" fill="#06b6d4" font-family="Fredoka One" font-size="14">The "Best Fit" Line</text>
+      <text x="385" y="48" fill="#06b6d4" font-family="Fira Code" font-size="11">y = mx + b</text>
+      <!-- Show residuals on a couple points -->
+      <line x1="200" y1="170" x2="200" y2="153" stroke="#f43f5e" stroke-width="1.5" stroke-dasharray="3,2"/>
+      <line x1="295" y1="125" x2="295" y2="103" stroke="#f43f5e" stroke-width="1.5" stroke-dasharray="3,2"/>
+      <text x="208" y="166" fill="#f43f5e" font-family="Fira Code" font-size="9">error</text>
+    </svg>
+  </div>
+
+  <p style="margin-top:8px;">Each <strong style="color:var(--lin-blue);">blue dot</strong> is a real house (size + price). The <strong style="color:var(--lin-cyan);">cyan line</strong> is the model's prediction. The <strong style="color:var(--err-rose);">red dashes</strong> are the errors — how far each prediction is from reality. Linear regression's job is to find the line that <strong>minimizes the total error</strong>!</p>
+</div>
+
+<div class="card card-lin">
+  <h3>The Formula — y = mx + b (Remember Class 8?)</h3>
+  <p>You've seen this since school — it's the equation of a straight line!</p>
+
+  <div class="formula-box f-lin">
+    <div class="formula-label" style="color:var(--lin-blue);">School Math</div>
+    <div class="formula">y = m·x + b</div>
+    <div class="formula-explain">m = slope (how steep) &nbsp; · &nbsp; b = y-intercept (where line crosses y-axis)</div>
+  </div>
+
+  <div class="formula-box f-lin">
+    <div class="formula-label" style="color:var(--lin-blue);">Same Thing in ML Notation</div>
+    <div class="formula">ŷ = w·x + b</div>
+    <div class="formula-explain">w = <strong style="color:#fff;">weight</strong> (same as slope) &nbsp; · &nbsp; b = <strong style="color:#fff;">bias</strong> (same as intercept)<br>ŷ ("y-hat") = <strong style="color:#fff;">predicted</strong> y &nbsp; · &nbsp; x = input feature</div>
+  </div>
+
+  <p style="margin-top:14px;"><strong>Example:</strong> Predicting house price from size.</p>
+  <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:18px;margin:14px 0;">
+    <div style="font-family:'Fira Code',monospace;font-size:14px;color:var(--muted);line-height:2;">
+      Suppose the model learned:<br>
+      &nbsp;&nbsp;<span style="color:var(--lin-blue);">w = 0.05</span> (weight)<br>
+      &nbsp;&nbsp;<span style="color:var(--lin-cyan);">b = 10</span> (bias)<br><br>
+      For a 1000 sq ft house:<br>
+      &nbsp;&nbsp;ŷ = 0.05 × 1000 + 10 = <span style="color:var(--good-green);font-weight:700;">₹60 Lakhs</span><br><br>
+      For a 2000 sq ft house:<br>
+      &nbsp;&nbsp;ŷ = 0.05 × 2000 + 10 = <span style="color:var(--good-green);font-weight:700;">₹110 Lakhs</span>
     </div>
   </div>
 
-  <div style="background:rgba(59,130,246,0.08);border:2px solid rgba(59,130,246,0.25);border-radius:14px;padding:24px;margin:16px 0;text-align:center;">
-    <div style="font-family:'Fredoka One',cursive;font-size:22px;color:var(--data-blue);margin-bottom:8px;">❓ The Big Question</div>
-    <div style="font-size:18px;color:#fff;line-height:1.6;">What kind of passenger was most likely to <strong style="color:var(--clean-green);">survive</strong> the Titanic?</div>
-    <div style="font-size:14px;color:var(--muted);margin-top:8px;">Age? Gender? Ticket class? Let's find out using data science!</div>
+  <div class="tip-box">📐 <strong>Interpretation:</strong> Every extra sq ft adds ₹0.05L (₹5,000) to the price. Even a 0 sq ft "house" would cost ₹10L (the base price — taxes, paperwork, etc.).</div>
+</div>
+
+<div class="card card-lin">
+  <h3>How Does It Find the Best Line? (Cost Function)</h3>
+  <p>Out of INFINITE possible lines, how does the algorithm pick the best one? It uses a <strong>cost function</strong> — a number that tells us how BAD a line is. Then it picks the line with the LOWEST cost!</p>
+
+  <div class="formula-box f-lin">
+    <div class="formula-label" style="color:var(--lin-blue);">Mean Squared Error (MSE)</div>
+    <div class="formula">MSE = (1/n) × Σ (y - ŷ)²</div>
+    <div class="formula-explain">For every point: take the error (actual − predicted), <strong style="color:#fff;">square it</strong> (so negatives don't cancel positives),<br>then average across all points. Lower MSE = better line!</div>
+  </div>
+
+  <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:18px;margin:14px 0;">
+    <div style="font-family:'Fira Code',monospace;font-size:13px;color:var(--muted);line-height:2;">
+      Real prices:    [50, 60, 80, 100]<br>
+      Model predicts: [55, 58, 75, 105]<br>
+      Errors:         [-5, +2, +5, -5]<br>
+      Squared:        [25, 4, 25, 25]<br>
+      Average:        <span style="color:var(--err-rose);font-weight:700;">MSE = 19.75</span><br><br>
+      The algorithm tries different (w, b) values<br>
+      and keeps the ones with the <span style="color:var(--good-green);">lowest MSE</span>!
+    </div>
+  </div>
+
+  <div class="tip-box">🤔 <strong>Why square the errors?</strong> Two reasons: (1) errors of -5 and +5 should both count as "bad" — squaring removes the sign. (2) Squaring punishes BIG mistakes more than small ones (an error of 10 squared = 100, but error of 2 squared = only 4).</div>
+</div>
+
+<div class="card card-lin">
+  <h3>Gradient Descent — How the Computer Searches</h3>
+  <p>Imagine you're blindfolded on a hilly mountain and need to reach the bottom. What do you do? Feel which way is downhill, take a step that way. Repeat. That's <strong>gradient descent</strong> — the algorithm that finds the lowest cost!</p>
+
+  <div class="svg-wrap">
+    <svg viewBox="0 0 480 240" xmlns="http://www.w3.org/2000/svg">
+      <!-- Cost curve (parabola) -->
+      <path d="M 40 30 Q 240 280 440 30" stroke="#3b82f6" stroke-width="2.5" fill="none"/>
+      <!-- Axis -->
+      <line x1="40" y1="220" x2="440" y2="220" stroke="#444" stroke-width="1"/>
+      <text x="240" y="235" text-anchor="middle" fill="#8892a4" font-family="Fira Code" font-size="11">weight (w) →</text>
+      <text x="20" y="125" fill="#8892a4" font-family="Fira Code" font-size="11" transform="rotate(-90 20 125)">cost →</text>
+      <!-- Steps down -->
+      <circle cx="80" cy="68" r="6" fill="#f43f5e"/>
+      <text x="80" y="55" text-anchor="middle" fill="#f43f5e" font-family="Fira Code" font-size="10">start</text>
+      <circle cx="130" cy="115" r="6" fill="#f59e0b"/>
+      <circle cx="180" cy="155" r="6" fill="#f59e0b"/>
+      <circle cx="220" cy="175" r="6" fill="#10b981"/>
+      <circle cx="240" cy="180" r="7" fill="#10b981" stroke="#fff" stroke-width="2"/>
+      <text x="240" y="200" text-anchor="middle" fill="#10b981" font-family="Fira Code" font-size="10">minimum!</text>
+      <!-- Arrows -->
+      <path d="M 90 75 Q 105 95 120 110" stroke="#f59e0b" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+      <path d="M 140 122 Q 155 140 170 150" stroke="#f59e0b" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+      <path d="M 188 160 Q 200 170 212 173" stroke="#10b981" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+      <defs>
+        <marker id="arrow" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+          <path d="M 0 0 L 6 3 L 0 6 z" fill="#f59e0b"/>
+        </marker>
+      </defs>
+    </svg>
+  </div>
+
+  <p>The algorithm:</p>
+  <ol style="padding-left:24px;margin:10px 0;">
+    <li>Starts with random <strong>w</strong> and <strong>b</strong> values</li>
+    <li>Calculates the cost (MSE)</li>
+    <li>Figures out which direction reduces the cost</li>
+    <li>Takes a small step in that direction (called the <strong>learning rate</strong>)</li>
+    <li>Repeats thousands of times until cost stops decreasing</li>
+  </ol>
+
+  <div class="tip-box">🎢 <strong>Good news:</strong> sklearn does ALL of this for you. You just write <code style="color:var(--lin-blue);">model.fit(X, y)</code> and the magic happens behind the scenes!</div>
+</div>
+
+<div class="card card-lin">
+  <h3>Let's Code It! — Predicting House Prices</h3>
+
+  <div class="code-line"># Step 1: Import what we need
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, r2_score
+
+# Step 2: Create some house data (size in sq ft, price in lakhs)
+data = {
+    'size':  [500, 750, 1000, 1200, 1500, 1800, 2000, 2500, 3000, 3500],
+    'price': [25,  40,  55,   65,   85,   100,  115,  140,  170,  200]
+}
+df = pd.DataFrame(data)
+
+# Step 3: Separate features (X) and target (y)
+X = df[['size']]      # Features (must be 2D for sklearn!)
+y = df['price']       # Target (what we predict)
+
+# Step 4: Split into train/test
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# Step 5: Create and train the model — JUST 2 LINES!
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# Step 6: Look at what it learned
+print(f"Slope (w):     {model.coef_[0]:.4f}")
+print(f"Intercept (b): {model.intercept_:.4f}")
+print(f"\nLearned formula: price = {model.coef_[0]:.4f} × size + {model.intercept_:.2f}")</div>
+
+  <div class="output-console">Slope (w):     0.0578
+Intercept (b): -1.2417
+
+Learned formula: price = 0.0578 × size + -1.24
+
+Translation: Every extra sq ft adds about ₹5,780 to the price! 🏠</div>
+</div>
+
+<div class="card card-lin">
+  <h3>Making Predictions &amp; Evaluating</h3>
+
+  <div class="code-line"># Step 7: Predict on test data
+y_pred = model.predict(X_test)
+
+# Step 8: Compare predictions vs reality
+for actual, predicted in zip(y_test, y_pred):
+    print(f"Actual: ₹{actual}L  →  Predicted: ₹{predicted:.1f}L")
+
+# Step 9: Measure performance
+mse = mean_squared_error(y_test, y_pred)
+r2  = r2_score(y_test, y_pred)
+print(f"\nMSE: {mse:.2f}  (lower = better)")
+print(f"R²:  {r2:.4f}   (closer to 1.0 = better)")
+
+# Step 10: Predict for a NEW house (1700 sq ft)
+new_house = [[1700]]
+predicted_price = model.predict(new_house)[0]
+print(f"\n🏠 A 1700 sq ft house should cost: ₹{predicted_price:.2f}L")</div>
+
+  <div class="output-console">Actual: ₹100L  →  Predicted: ₹98.8L
+Actual: ₹40L   →  Predicted: ₹42.1L
+
+MSE: 1.94  (lower = better)
+R²:  0.9876   (closer to 1.0 = better)
+
+🏠 A 1700 sq ft house should cost: ₹97.06L</div>
+
+  <div class="tip-box"><strong>R² Score:</strong> The most popular metric for regression. R² = 1.0 means perfect predictions. R² = 0 means useless. R² = 0.987 means our model explains <strong>98.7% of the variation</strong> in house prices — excellent!</div>
+</div>
+
+<!-- Interactive: Linear Regression Slider -->
+<div class="demo-box box-lin">
+  <div class="box-title">📈 Interactive: Move the Line Yourself!</div>
+  <p style="text-align:center;color:var(--muted);margin-bottom:16px;">Adjust slope (w) and intercept (b) — see how the cost changes!</p>
+  <div class="slider-row">
+    <label>Slope (w):</label>
+    <input type="range" id="slopeSlider" min="-0.05" max="0.15" step="0.005" value="0.058">
+    <div class="val" id="slopeVal">0.058</div>
+  </div>
+  <div class="slider-row">
+    <label>Intercept (b):</label>
+    <input type="range" id="interceptSlider" min="-30" max="60" step="1" value="-1">
+    <div class="val" id="interceptVal">-1</div>
+  </div>
+  <div id="linRegPlot"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;">
+    <div style="background:rgba(0,0,0,0.3);border-radius:8px;padding:12px;text-align:center;">
+      <div style="font-size:11px;color:var(--muted);">Mean Squared Error</div>
+      <div id="mseDisplay" style="font-family:'Fredoka One',cursive;font-size:22px;color:var(--err-rose);">--</div>
+    </div>
+    <div style="background:rgba(0,0,0,0.3);border-radius:8px;padding:12px;text-align:center;">
+      <div style="font-size:11px;color:var(--muted);">R² Score</div>
+      <div id="r2Display" style="font-family:'Fredoka One',cursive;font-size:22px;color:var(--good-green);">--</div>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:12px;">
+    <button class="btn btn-lin" onclick="findBest()">🎯 Find the Best Line (sklearn does this)</button>
   </div>
 </div>
 
 
-<!-- ╔══════════ WHAT IS A DATASET? ══════════╗ -->
-<div class="section-divider div-data">
-  <div class="label">📊 What is a Dataset?</div>
+<!-- ╔══════════ LOGISTIC REGRESSION ══════════╗ -->
+<div class="section-divider div-log">
+  <div class="label">📊 Logistic Regression</div>
 </div>
 
-<div class="card card-data">
-  <h3>Think of it Like a Spreadsheet</h3>
-  <p>A <strong>dataset</strong> is an organized collection of data stored in <strong>rows</strong> and <strong>columns</strong> — exactly like a table or spreadsheet you'd see in Google Sheets or Excel.</p>
+<div class="card card-log">
+  <h3>The Confusing Name — It's Actually for Classification!</h3>
+  <p style="background:rgba(248,81,73,0.06);padding:14px;border-radius:8px;border:1px solid rgba(248,81,73,0.15);">
+    ⚠️ <strong style="color:#f85149;">Common Confusion:</strong> "Logistic Regression" has "regression" in its name, but it's actually used for <strong>CLASSIFICATION</strong> (predicting categories like yes/no, spam/ham). The name is a historical accident — don't let it confuse you!
+  </p>
 
-  <div style="display:grid;gap:12px;margin:20px 0;">
-    <div style="background:rgba(59,130,246,0.06);border:2px solid rgba(59,130,246,0.2);border-radius:10px;padding:16px;display:flex;align-items:center;gap:14px;">
-      <div style="font-size:28px;min-width:36px;text-align:center;">📄</div>
-      <div><strong style="color:var(--data-blue);">Each ROW</strong> = one <strong>record</strong> (one person, one transaction, one event). In Titanic: each row = one passenger.</div>
+  <p style="margin-top:14px;"><strong>What it does:</strong> Given some input features, predict the <strong style="color:var(--log-orange);">probability</strong> that something belongs to a class.</p>
+
+  <div class="concept-grid">
+    <div class="concept-card" style="border-color:var(--log-orange);">
+      <div style="font-size:32px;">📧</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--log-orange);margin-top:6px;">Email Spam</div>
+      <div style="font-size:13px;color:var(--muted);">Probability email is spam: 0.92 → Spam!</div>
     </div>
-    <div style="background:rgba(249,115,22,0.06);border:2px solid rgba(249,115,22,0.2);border-radius:10px;padding:16px;display:flex;align-items:center;gap:14px;">
-      <div style="font-size:28px;min-width:36px;text-align:center;">📊</div>
-      <div><strong style="color:var(--load-orange);">Each COLUMN</strong> = one <strong>feature</strong> (one property or attribute). In Titanic: Name, Age, Gender, Ticket Class, etc.</div>
+    <div style="border-color:var(--log-orange);" class="concept-card">
+      <div style="font-size:32px;">🚢</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--log-orange);margin-top:6px;">Titanic Survival</div>
+      <div style="font-size:13px;color:var(--muted);">Probability passenger survived: 0.78 → Survived!</div>
     </div>
-    <div style="background:rgba(16,185,129,0.06);border:2px solid rgba(16,185,129,0.2);border-radius:10px;padding:16px;display:flex;align-items:center;gap:14px;">
-      <div style="font-size:28px;min-width:36px;text-align:center;">🎯</div>
-      <div><strong style="color:var(--clean-green);">One special column</strong> = the <strong>target/label</strong> — what you're trying to predict. In Titanic: "Survived" (0 = No, 1 = Yes).</div>
+    <div class="concept-card" style="border-color:var(--log-orange);">
+      <div style="font-size:32px;">🏥</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--log-orange);margin-top:6px;">Disease Detection</div>
+      <div style="font-size:13px;color:var(--muted);">Probability tumor is malignant: 0.15 → Benign</div>
     </div>
-  </div>
-
-  <div style="overflow-x:auto;">
-    <table class="data-table">
-      <thead><tr><th>PassengerId</th><th>Survived</th><th>Pclass</th><th>Name</th><th>Sex</th><th>Age</th><th>Fare</th></tr></thead>
-      <tbody>
-        <tr><td>1</td><td>0</td><td>3</td><td>Braund, Mr. Owen</td><td>male</td><td>22</td><td>7.25</td></tr>
-        <tr><td>2</td><td>1</td><td>1</td><td>Cumings, Mrs. John</td><td>female</td><td>38</td><td>71.28</td></tr>
-        <tr><td>3</td><td>1</td><td>3</td><td>Heikkinen, Miss. Laina</td><td>female</td><td>26</td><td>7.92</td></tr>
-        <tr><td>4</td><td>1</td><td>1</td><td>Futrelle, Mrs. Jacques</td><td>female</td><td>35</td><td>53.10</td></tr>
-        <tr><td>5</td><td>0</td><td>3</td><td>Allen, Mr. William</td><td>male</td><td>35</td><td>8.05</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="tip-box">🚢 <strong>Reading the Data:</strong> Row 1 is Owen Braund, a 22-year-old male in 3rd class who paid ₹7.25 — he did NOT survive (Survived=0). Row 2 is Mrs. Cumings, 38, 1st class — she DID survive (Survived=1). Already we see a pattern forming!</div>
-</div>
-
-<div class="card card-data">
-  <h3>Titanic Column Dictionary</h3>
-  <p>Every good dataset comes with a <strong>data dictionary</strong> — a guide explaining what each column means. Here's ours:</p>
-
-  <div style="overflow-x:auto;">
-    <table class="data-table">
-      <thead><tr><th>Column</th><th>What It Means</th><th>Type</th><th>Example</th></tr></thead>
-      <tbody>
-        <tr><td><strong>PassengerId</strong></td><td>Unique ID for each passenger</td><td>Integer</td><td>1, 2, 3...</td></tr>
-        <tr><td><strong>Survived</strong></td><td>Did they survive? <span style="color:var(--clean-green);">1=Yes</span>, <span style="color:#f85149;">0=No</span></td><td>Integer (binary)</td><td>0 or 1</td></tr>
-        <tr><td><strong>Pclass</strong></td><td>Ticket class: 1st, 2nd, or 3rd</td><td>Integer (1, 2, 3)</td><td>1 = luxury, 3 = economy</td></tr>
-        <tr><td><strong>Name</strong></td><td>Full name with title</td><td>String</td><td>"Braund, Mr. Owen"</td></tr>
-        <tr><td><strong>Sex</strong></td><td>Gender</td><td>String</td><td>"male" or "female"</td></tr>
-        <tr><td><strong>Age</strong></td><td>Age in years</td><td>Float</td><td>22, 38, 0.83 (baby!)</td></tr>
-        <tr><td><strong>SibSp</strong></td><td>Siblings/spouses aboard</td><td>Integer</td><td>0, 1, 2...</td></tr>
-        <tr><td><strong>Parch</strong></td><td>Parents/children aboard</td><td>Integer</td><td>0, 1, 2...</td></tr>
-        <tr><td><strong>Ticket</strong></td><td>Ticket number</td><td>String</td><td>"A/5 21171"</td></tr>
-        <tr><td><strong>Fare</strong></td><td>How much they paid</td><td>Float</td><td>7.25, 71.28</td></tr>
-        <tr><td><strong>Cabin</strong></td><td>Cabin number</td><td>String</td><td>"C85" (many missing!)</td></tr>
-        <tr><td><strong>Embarked</strong></td><td>Port boarded: C, Q, S</td><td>String</td><td>S=Southampton, C=Cherbourg, Q=Queenstown</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-
-<!-- ╔══════════ FILE FORMATS ══════════╗ -->
-<div class="section-divider div-load">
-  <div class="label">📂 What is CSV? What is Excel?</div>
-</div>
-
-<div class="card card-load">
-  <h3>CSV — The Universal Data Format</h3>
-  <p><strong>CSV</strong> stands for <strong>Comma-Separated Values</strong>. It's the simplest way to store a table — just a plain text file where each value is separated by a comma, and each line is a new row.</p>
-
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0;">
-    <div style="background:rgba(249,115,22,0.08);border:2px solid rgba(249,115,22,0.25);border-radius:12px;padding:20px;">
-      <div style="font-family:'Fredoka One',cursive;color:var(--load-orange);font-size:16px;margin-bottom:8px;">📄 What a CSV looks like inside</div>
-      <div class="code-line" style="font-size:12px;color:var(--load-amber);margin-top:8px;">PassengerId,Survived,Pclass,Name,Sex,Age,Fare
-1,0,3,"Braund, Mr. Owen",male,22,7.25
-2,1,1,"Cumings, Mrs. John",female,38,71.28
-3,1,3,"Heikkinen, Miss. Laina",female,26,7.92</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:10px;">Plain text — commas separate values. Opens in ANY text editor, Excel, Google Sheets, Python!</div>
-    </div>
-    <div style="background:rgba(16,185,129,0.08);border:2px solid rgba(16,185,129,0.25);border-radius:12px;padding:20px;">
-      <div style="font-family:'Fredoka One',cursive;color:var(--clean-green);font-size:16px;margin-bottom:8px;">📗 What Excel (.xlsx) is</div>
-      <div style="margin-top:8px;">
-        <table class="data-table" style="font-size:11px;"><thead><tr><th class="th-clean">A</th><th class="th-clean">B</th><th class="th-clean">C</th></tr></thead>
-        <tbody><tr><td>PassengerId</td><td>Survived</td><td>Pclass</td></tr><tr><td>1</td><td>0</td><td>3</td></tr><tr><td>2</td><td>1</td><td>1</td></tr></tbody></table>
-      </div>
-      <div style="font-size:13px;color:var(--muted);margin-top:10px;">Binary format — has formatting, formulas, multiple sheets. Needs Excel or special libraries to read!</div>
-    </div>
-  </div>
-</div>
-
-<div class="card card-load">
-  <h3>CSV vs Excel — When to Use Which?</h3>
-
-  <div style="overflow-x:auto;">
-    <table class="data-table">
-      <thead><tr><th class="th-load">Feature</th><th class="th-load">CSV (.csv)</th><th class="th-load">Excel (.xlsx)</th></tr></thead>
-      <tbody>
-        <tr><td><strong>Format</strong></td><td>Plain text</td><td>Binary (proprietary)</td></tr>
-        <tr><td><strong>Size</strong></td><td>Small — just data</td><td>Larger — stores formatting too</td></tr>
-        <tr><td><strong>Multiple sheets?</strong></td><td>No — one table per file</td><td>Yes — many tabs/sheets</td></tr>
-        <tr><td><strong>Formulas?</strong></td><td>No</td><td>Yes (SUM, VLOOKUP, etc.)</td></tr>
-        <tr><td><strong>Best for</strong></td><td>Data science, ML, sharing data</td><td>Business reports, finance</td></tr>
-        <tr><td><strong>Python command</strong></td><td>pd.read_csv()</td><td>pd.read_excel()</td></tr>
-        <tr><td><strong>Used on Kaggle?</strong></td><td style="color:var(--clean-green);font-weight:700;">Yes! Almost always</td><td>Sometimes</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="tip-box tip-box-load">📂 <strong>Pro Tip:</strong> In data science, CSV is king. It's lightweight, universal, and every tool reads it. Kaggle, GitHub, and most ML pipelines use CSV. You'll use <code>pd.read_csv()</code> 95% of the time!</div>
-</div>
-
-<div class="card card-load">
-  <h3>Other Data Formats You'll See</h3>
-
-  <div class="concept-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
-    <div class="concept-card" style="border-color:var(--load-orange);padding:16px;">
-      <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--load-orange);margin-bottom:4px;">.tsv</div>
-      <div style="font-size:12px;color:var(--muted);">Tab-separated. Like CSV but tabs instead of commas.</div>
-    </div>
-    <div class="concept-card" style="border-color:var(--data-blue);padding:16px;">
-      <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--data-blue);margin-bottom:4px;">.json</div>
-      <div style="font-size:12px;color:var(--muted);">JavaScript Object Notation. Used by APIs & web apps.</div>
-    </div>
-    <div class="concept-card" style="border-color:var(--clean-green);padding:16px;">
-      <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--clean-green);margin-bottom:4px;">.parquet</div>
-      <div style="font-size:12px;color:var(--muted);">Compressed columnar format. Super fast for big data!</div>
-    </div>
-    <div class="concept-card" style="border-color:var(--analyze-purple);padding:16px;">
-      <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--analyze-purple);margin-bottom:4px;">.sql</div>
-      <div style="font-size:12px;color:var(--muted);">Database queries. Data stored in relational databases.</div>
-    </div>
-  </div>
-</div>
-
-
-<!-- ╔══════════ LOADING ══════════╗ -->
-<div class="section-divider div-load">
-  <div class="label">📥 Loading the Titanic Dataset</div>
-</div>
-
-<div class="card card-load">
-  <h3>Step 1: Import Libraries</h3>
-  <p>We need three libraries — <strong>Pandas</strong> for data, <strong>NumPy</strong> for math, and <strong>Matplotlib/Seaborn</strong> for charts.</p>
-
-  <div class="code-line">import pandas as pd       # Data manipulation — the star of the show!
-import numpy as np        # Numerical computing
-import matplotlib.pyplot as plt   # Basic plotting
-import seaborn as sns     # Beautiful statistical plots
-
-# Settings for prettier charts
-sns.set_style("darkgrid")
-plt.rcParams['figure.figsize'] = (10, 6)</div>
-</div>
-
-<div class="card card-load">
-  <h3>Step 2: Load the CSV</h3>
-
-  <div class="code-line"># Load the Titanic dataset
-df = pd.read_csv("titanic.csv")
-
-# Or directly from a URL (Kaggle / GitHub)
-url = "https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv"
-df = pd.read_csv(url)
-
-print("✅ Dataset loaded!")
-print(f"Shape: {df.shape[0]} rows × {df.shape[1]} columns")</div>
-
-  <div class="output-console">✅ Dataset loaded!
-Shape: 891 rows × 12 columns</div>
-
-  <div class="tip-box tip-box-load">📥 <strong>What just happened?</strong> <code>pd.read_csv()</code> read the file, understood the commas, turned it into a <strong>DataFrame</strong> (Pandas's fancy table), and stored it in a variable called <code>df</code>. Now we can explore it!</div>
-</div>
-
-<div class="card card-load">
-  <h3>Step 3: First Look — Exploring the Data</h3>
-  <p>Before doing ANYTHING, always explore your data first. Here are the <strong>5 essential commands</strong>:</p>
-
-  <div class="code-line"># 1. First 5 rows — see what the data looks like
-df.head()</div>
-
-  <div class="output-console" style="font-size:11px;">   PassengerId  Survived  Pclass                            Name     Sex   Age  SibSp  Parch     Ticket    Fare Cabin  Embarked
-0            1         0       3       Braund, Mr. Owen Harris    male  22.0      1      0  A/5 21171   7.25   NaN         S
-1            2         1       1  Cumings, Mrs. John Bradley  female  38.0      1      0   PC 17599  71.28   C85         C
-2            3         1       3    Heikkinen, Miss. Laina     female  26.0      0      0  STON/O2.  7.92   NaN         S
-3            4         1       1  Futrelle, Mrs. Jacques Heath  female  35.0      1      0    113803  53.10  C123         S
-4            5         0       3      Allen, Mr. William Henry    male  35.0      0      0    373450   8.05   NaN         S</div>
-
-  <div class="code-line"># 2. Shape — how big is our data?
-print("Shape:", df.shape)       # (891, 12)
-
-# 3. Data types — what kind of data is in each column?
-print(df.dtypes)
-
-# 4. Quick statistics — numbers at a glance
-df.describe()
-
-# 5. Missing values — where's the data incomplete?
-print(df.isnull().sum())</div>
-
-  <div class="output-console">Shape: (891, 12)
-
-PassengerId      0    ← No missing!
-Survived         0
-Pclass           0
-Name             0
-Sex              0
-Age            177    ← 😱 177 passengers have no age!
-SibSp            0
-Parch            0
-Ticket           0
-Fare             0
-Cabin          687    ← 😱 687 missing! (77% gone!)
-Embarked         2    ← 2 missing</div>
-</div>
-
-<div class="card card-load">
-  <h3>Step 4: df.describe() — Statistics in One Line</h3>
-  <p>This single command gives you count, mean, std, min, 25%, 50% (median), 75%, and max for every number column!</p>
-
-  <div class="code-line">df.describe()</div>
-
-  <div class="output-console" style="font-size:11px;">       PassengerId  Survived    Pclass       Age     SibSp     Parch      Fare
-count    891.0000  891.0000  891.0000  714.0000  891.0000  891.0000  891.0000
-mean     446.0000    0.3838    2.3086   29.6991    0.5230    0.3816   32.2042
-std      257.3538    0.4866    0.8361   14.5265    1.1027    0.8061   49.6934
-min        1.0000    0.0000    1.0000    0.4200    0.0000    0.0000    0.0000
-25%      223.5000    0.0000    2.0000   20.1250    0.0000    0.0000    7.9104
-50%      446.0000    0.0000    3.0000   28.0000    0.0000    0.0000   14.4542
-75%      669.5000    1.0000    3.0000   38.0000    1.0000    0.0000   31.0000
-max      891.0000    1.0000    3.0000   80.0000    8.0000    6.0000  512.3292</div>
-
-  <div style="background:rgba(59,130,246,0.08);border:2px solid rgba(59,130,246,0.2);border-radius:12px;padding:20px;margin:16px 0;">
-    <div style="font-family:'Fredoka One',cursive;color:var(--data-blue);font-size:16px;margin-bottom:12px;">🔍 What This Tells Us Already!</div>
-    <div style="font-size:15px;color:var(--muted);line-height:2.2;">
-      • <strong style="color:#fff;">Survival rate: 38.4%</strong> — most people (61.6%) did NOT survive<br>
-      • <strong style="color:#fff;">Average age: ~30 years</strong> — youngest was 0.42 (a baby!), oldest was 80<br>
-      • <strong style="color:#fff;">Average fare: ₹32.20</strong> — but max was ₹512! Huge range = different classes<br>
-      • <strong style="color:#fff;">Age has only 714 values</strong> (count) — but we have 891 rows. That means 177 missing!<br>
-      • <strong style="color:#fff;">Most were in 3rd class</strong> — median Pclass = 3
-    </div>
-  </div>
-</div>
-
-<!-- Interactive: Explore Commands -->
-<div class="demo-box box-load">
-  <div class="box-title">🔍 Interactive: Explore the Titanic</div>
-  <p style="text-align:center;color:var(--muted);margin-bottom:16px;">Click a Pandas command and see the result!</p>
-  <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-    <button class="btn btn-load" onclick="showExplore('head')">df.head()</button>
-    <button class="btn btn-load" onclick="showExplore('shape')">df.shape</button>
-    <button class="btn btn-load" onclick="showExplore('dtypes')">df.dtypes</button>
-    <button class="btn btn-load" onclick="showExplore('null')">df.isnull().sum()</button>
-    <button class="btn btn-load" onclick="showExplore('value')">df["Survived"].value_counts()</button>
-    <button class="btn btn-load" onclick="showExplore('unique')">df["Embarked"].unique()</button>
-  </div>
-  <div id="exploreOutput"></div>
-</div>
-
-
-<!-- ╔══════════ CLEANING ══════════╗ -->
-<div class="section-divider div-clean">
-  <div class="label">🧹 Cleaning the Titanic Data</div>
-</div>
-
-<div class="card card-clean">
-  <h3>Why Clean Data? — Garbage In, Garbage Out!</h3>
-  <p>Real-world data is <strong>always messy</strong>. Our Titanic dataset has 3 problems we need to fix before analysis:</p>
-
-  <div class="concept-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));">
-    <div class="concept-card" style="border-color:#f85149;">
-      <div style="font-size:28px;margin-bottom:8px;">❓</div>
-      <div style="font-family:'Fredoka One',cursive;font-size:15px;color:#f85149;margin-bottom:6px;">Missing Values</div>
-      <div style="font-size:12px;color:var(--muted);">Age: 177 missing (20%)<br>Cabin: 687 missing (77%!)<br>Embarked: 2 missing</div>
-    </div>
-    <div class="concept-card" style="border-color:var(--load-orange);">
-      <div style="font-size:28px;margin-bottom:8px;">🔤</div>
-      <div style="font-family:'Fredoka One',cursive;font-size:15px;color:var(--load-orange);margin-bottom:6px;">Wrong Data Types</div>
-      <div style="font-size:12px;color:var(--muted);">"Sex" is text — ML needs numbers!<br>"Embarked" is letters — need encoding</div>
-    </div>
-    <div class="concept-card" style="border-color:var(--analyze-purple);">
-      <div style="font-size:28px;margin-bottom:8px;">🗑️</div>
-      <div style="font-family:'Fredoka One',cursive;font-size:15px;color:var(--analyze-purple);margin-bottom:6px;">Useless Columns</div>
-      <div style="font-size:12px;color:var(--muted);">PassengerId: just a counter<br>Name: unique text (hard to use)<br>Ticket: random strings</div>
+    <div class="concept-card" style="border-color:var(--log-orange);">
+      <div style="font-size:32px;">💳</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--log-orange);margin-top:6px;">Loan Approval</div>
+      <div style="font-size:13px;color:var(--muted);">Probability of default: 0.05 → Approve!</div>
     </div>
   </div>
 </div>
 
-<div class="card card-clean">
-  <h3>Fix 1: Handle Missing Values</h3>
+<div class="card card-log">
+  <h3>Why Linear Regression Doesn't Work Here</h3>
+  <p>Could we use linear regression to predict 0 or 1? Let's see...</p>
 
-  <div class="code-line"># Check what's missing
-print(df.isnull().sum())
-print(f"\nAge missing: {df['Age'].isnull().sum()} out of {len(df)} ({df['Age'].isnull().mean()*100:.1f}%)")
-print(f"Cabin missing: {df['Cabin'].isnull().sum()} out of {len(df)} ({df['Cabin'].isnull().mean()*100:.1f}%)")</div>
-
-  <div class="output-console">Age missing: 177 out of 891 (19.9%)
-Cabin missing: 687 out of 891 (77.1%)</div>
-
-  <div style="display:grid;gap:12px;margin:16px 0;">
-    <div style="background:rgba(16,185,129,0.06);border:2px solid rgba(16,185,129,0.2);border-radius:10px;padding:16px;">
-      <strong style="color:var(--clean-green);">Age → Fill with median (28)</strong>
-      <div class="code-line" style="font-size:13px;margin-top:8px;"># Fill Age with the median (middle value)
-df["Age"].fillna(df["Age"].median(), inplace=True)
-print("Age missing after fix:", df["Age"].isnull().sum())  # 0!</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:8px;">Why median not mean? Because mean is affected by outliers (that 80-year-old!). Median is safer.</div>
-    </div>
-
-    <div style="background:rgba(248,81,73,0.06);border:2px solid rgba(248,81,73,0.2);border-radius:10px;padding:16px;">
-      <strong style="color:#f85149;">Cabin → DROP the whole column</strong>
-      <div class="code-line" style="font-size:13px;margin-top:8px;"># 77% missing = too much to fill. Drop it!
-df.drop("Cabin", axis=1, inplace=True)
-print("Columns after drop:", list(df.columns))</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:8px;">Rule of thumb: If >50% of a column is missing, drop the whole column.</div>
-    </div>
-
-    <div style="background:rgba(59,130,246,0.06);border:2px solid rgba(59,130,246,0.2);border-radius:10px;padding:16px;">
-      <strong style="color:var(--data-blue);">Embarked → Fill with mode (most common)</strong>
-      <div class="code-line" style="font-size:13px;margin-top:8px;"># Only 2 missing — fill with the most common port
-df["Embarked"].fillna(df["Embarked"].mode()[0], inplace=True)
-print("Embarked missing:", df["Embarked"].isnull().sum())  # 0!</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:8px;">Mode = most frequent value. Most passengers boarded at Southampton ("S").</div>
-    </div>
+  <div class="svg-wrap">
+    <svg viewBox="0 0 480 260" xmlns="http://www.w3.org/2000/svg">
+      <!-- Axes -->
+      <line x1="50" y1="220" x2="450" y2="220" stroke="#444" stroke-width="1.5"/>
+      <line x1="50" y1="220" x2="50" y2="30" stroke="#444" stroke-width="1.5"/>
+      <text x="250" y="248" text-anchor="middle" fill="#8892a4" font-family="Fira Code" font-size="11">Hours Studied →</text>
+      <text x="20" y="125" text-anchor="middle" fill="#8892a4" font-family="Fira Code" font-size="11" transform="rotate(-90 20 125)">Pass exam? →</text>
+      <!-- Y axis labels -->
+      <text x="42" y="223" text-anchor="end" fill="#8892a4" font-family="Fira Code" font-size="11">0</text>
+      <text x="42" y="63" text-anchor="end" fill="#8892a4" font-family="Fira Code" font-size="11">1</text>
+      <!-- Points: Failed (0) -->
+      <circle cx="90" cy="220" r="5" fill="#f43f5e"/>
+      <circle cx="120" cy="220" r="5" fill="#f43f5e"/>
+      <circle cx="150" cy="220" r="5" fill="#f43f5e"/>
+      <circle cx="180" cy="220" r="5" fill="#f43f5e"/>
+      <!-- Points: Passed (1) -->
+      <circle cx="280" cy="60" r="5" fill="#10b981"/>
+      <circle cx="320" cy="60" r="5" fill="#10b981"/>
+      <circle cx="370" cy="60" r="5" fill="#10b981"/>
+      <circle cx="420" cy="60" r="5" fill="#10b981"/>
+      <!-- Linear regression line (bad!) -->
+      <line x1="60" y1="240" x2="450" y2="40" stroke="#f43f5e" stroke-width="2.5" stroke-dasharray="6,3"/>
+      <text x="200" y="100" fill="#f43f5e" font-family="Fira Code" font-size="11">❌ Linear (predicts 1.5, -0.3, etc — nonsense!)</text>
+      <!-- Sigmoid curve (good!) -->
+      <path d="M 60 218 Q 180 218 230 140 Q 280 62 450 62" stroke="#06b6d4" stroke-width="3" fill="none"/>
+      <text x="280" y="180" fill="#06b6d4" font-family="Fira Code" font-size="11">✅ S-curve (always between 0 and 1!)</text>
+    </svg>
   </div>
+
+  <p style="margin-top:8px;"><strong>The Problem with Linear:</strong> A straight line goes from -∞ to +∞. But probabilities MUST be between 0 and 1. A linear line could predict probability = 1.5 or -0.3 (nonsense!).</p>
+  <p style="margin-top:8px;"><strong>The Solution:</strong> Take the linear output and squash it into the range [0, 1] using a magic function called the <strong style="color:var(--sig-purple);">sigmoid</strong>!</p>
 </div>
 
-<div class="card card-clean">
-  <h3>Fix 2: Drop Useless Columns</h3>
 
-  <div class="code-line"># Remove columns that don't help analysis
-df.drop(["PassengerId", "Name", "Ticket"], axis=1, inplace=True)
-
-print("Remaining columns:", list(df.columns))
-print("Shape:", df.shape)</div>
-
-  <div class="output-console">Remaining columns: ['Survived', 'Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'Embarked']
-Shape: (891, 8)</div>
-
-  <div class="tip-box tip-box-clean">🧹 <strong>We went from 12 columns to 8!</strong> We dropped PassengerId (just a counter), Name (unique text), Ticket (random codes), and Cabin (77% missing). The remaining 8 columns are all useful for analysis.</div>
+<!-- SIGMOID -->
+<div class="section-divider div-sig">
+  <div class="label">🌊 The Sigmoid Function</div>
 </div>
 
-<div class="card card-clean">
-  <h3>Fix 3: Convert Text to Numbers (Encoding)</h3>
-  <p>ML models need <strong>numbers</strong>, not text! We need to convert "Sex" and "Embarked".</p>
+<div class="card card-sig">
+  <h3>The Magical S-Curve</h3>
+  <p>The <strong>sigmoid</strong> (also called the <strong>logistic</strong> function — that's where logistic regression gets its name!) takes ANY number and squashes it into a probability between 0 and 1.</p>
 
-  <div class="code-line"># Method 1: Map (for binary columns like Sex)
-df["Sex"] = df["Sex"].map({"male": 0, "female": 1})
-print("Sex column:\n", df["Sex"].head())
-
-# Method 2: One-Hot Encoding (for multi-category columns)
-df = pd.get_dummies(df, columns=["Embarked"], drop_first=True)
-print("\nNew columns:", list(df.columns))</div>
-
-  <div class="output-console">Sex column:
-0    0    ← male
-1    1    ← female
-2    1    ← female
-3    1    ← female
-4    0    ← male
-
-New columns: ['Survived', 'Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'Embarked_Q', 'Embarked_S']</div>
-
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0;">
-    <div style="background:rgba(248,81,73,0.06);border:2px solid rgba(248,81,73,0.2);border-radius:10px;padding:16px;text-align:center;">
-      <strong style="color:#f85149;">Before</strong>
-      <div style="font-family:'Fira Code',monospace;font-size:13px;color:var(--muted);margin-top:8px;">Sex: "male", "female"<br>Embarked: "S", "C", "Q"</div>
-    </div>
-    <div style="background:rgba(16,185,129,0.06);border:2px solid rgba(16,185,129,0.2);border-radius:10px;padding:16px;text-align:center;">
-      <strong style="color:var(--clean-green);">After</strong>
-      <div style="font-family:'Fira Code',monospace;font-size:13px;color:var(--muted);margin-top:8px;">Sex: 0, 1<br>Embarked_Q: 0/1, Embarked_S: 0/1</div>
-    </div>
+  <div class="formula-box f-sig">
+    <div class="formula-label" style="color:var(--sig-purple);">The Sigmoid Function</div>
+    <div class="formula">σ(z) = 1 / (1 + e<sup>-z</sup>)</div>
+    <div class="formula-explain">No matter what z is, σ(z) is always between 0 and 1.<br>e ≈ 2.718 (Euler's number — a math constant)</div>
   </div>
-</div>
 
-<div class="card card-clean">
-  <h3>Final Check: Is Our Data Clean?</h3>
-
-  <div class="code-line"># Final validation
-print("Missing values:\n", df.isnull().sum())
-print(f"\nShape: {df.shape}")
-print(f"Data types:\n{df.dtypes}")</div>
-
-  <div class="output-console">Missing values:
-Survived      0
-Pclass        0
-Sex           0
-Age           0
-SibSp         0
-Parch         0
-Fare          0
-Embarked_Q    0
-Embarked_S    0
-dtype: int64
-
-Shape: (891, 9)
-All numeric ✅  No missing values ✅  Ready for analysis! 🎉</div>
-
-  <div class="formula-box" style="border-color:var(--clean-green);">
-    <div style="font-family:'Fredoka One',cursive;font-size:16px;color:var(--clean-green);">Data Cleaning Summary</div>
-    <div class="formula" style="color:var(--clean-green);font-size:16px;">12 columns → 9 columns · 0 missing values · All numeric</div>
-    <div style="font-size:14px;color:var(--muted);margin-top:8px;">Filled Age with median, dropped Cabin, filled Embarked with mode, encoded Sex & Embarked</div>
+  <div class="svg-wrap">
+    <svg viewBox="0 0 480 260" xmlns="http://www.w3.org/2000/svg">
+      <!-- Axes -->
+      <line x1="50" y1="240" x2="450" y2="240" stroke="#444" stroke-width="1.5"/>
+      <line x1="250" y1="20" x2="250" y2="240" stroke="#444" stroke-width="1.5"/>
+      <!-- Y line at 0.5 -->
+      <line x1="50" y1="130" x2="450" y2="130" stroke="#666" stroke-width="1" stroke-dasharray="4,3"/>
+      <line x1="50" y1="40" x2="450" y2="40" stroke="#444" stroke-width="1" stroke-dasharray="2,3"/>
+      <!-- Labels -->
+      <text x="40" y="44" text-anchor="end" fill="#8892a4" font-family="Fira Code" font-size="11">1.0</text>
+      <text x="40" y="134" text-anchor="end" fill="#8892a4" font-family="Fira Code" font-size="11">0.5</text>
+      <text x="40" y="244" text-anchor="end" fill="#8892a4" font-family="Fira Code" font-size="11">0.0</text>
+      <text x="60" y="255" fill="#8892a4" font-family="Fira Code" font-size="10">-6</text>
+      <text x="248" y="255" fill="#8892a4" font-family="Fira Code" font-size="10">0</text>
+      <text x="440" y="255" fill="#8892a4" font-family="Fira Code" font-size="10">+6</text>
+      <text x="250" y="14" text-anchor="middle" fill="#8b5cf6" font-family="Fredoka One" font-size="13">σ(z)</text>
+      <text x="465" y="245" fill="#8892a4" font-family="Fira Code" font-size="10">z →</text>
+      <!-- Sigmoid curve -->
+      <path d="M 60 240 C 150 239 220 238 250 130 C 280 22 350 21 440 20" stroke="#8b5cf6" stroke-width="3" fill="none"/>
+      <!-- Special points -->
+      <circle cx="250" cy="130" r="5" fill="#f59e0b"/>
+      <text x="258" y="125" fill="#f59e0b" font-family="Fira Code" font-size="11">σ(0) = 0.5 (the threshold!)</text>
+      <circle cx="160" cy="220" r="4" fill="#f43f5e"/>
+      <text x="80" y="210" fill="#f43f5e" font-family="Fira Code" font-size="10">σ(-3) ≈ 0.05</text>
+      <circle cx="340" cy="40" r="4" fill="#10b981"/>
+      <text x="350" y="60" fill="#10b981" font-family="Fira Code" font-size="10">σ(3) ≈ 0.95</text>
+    </svg>
   </div>
-</div>
 
-<!-- Interactive: Cleaning Steps -->
-<div class="demo-box box-clean">
-  <div class="box-title">🧹 Interactive: Cleaning Pipeline</div>
-  <p style="text-align:center;color:var(--muted);margin-bottom:16px;">Click each step to see the before/after!</p>
-  <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-    <button class="btn btn-clean" onclick="showClean('missing')">1. Check Missing</button>
-    <button class="btn btn-clean" onclick="showClean('fillage')">2. Fill Age</button>
-    <button class="btn btn-clean" onclick="showClean('dropcabin')">3. Drop Cabin</button>
-    <button class="btn btn-clean" onclick="showClean('encode')">4. Encode Text</button>
-    <button class="btn btn-clean" onclick="showClean('final')">5. Final Check ✅</button>
-  </div>
-  <div id="cleanOutput"></div>
-</div>
-
-
-<!-- ╔══════════ ANALYSIS ══════════╗ -->
-<div class="section-divider div-analyze">
-  <div class="label">🔍 Analyzing the Titanic Data</div>
-</div>
-
-<div class="card card-analyze">
-  <h3>Technique 1: Value Counts — Who Survived?</h3>
-  <p><code>value_counts()</code> counts how many times each value appears. Perfect for categorical data!</p>
-
-  <div class="code-line"># Overall survival
-print(df["Survived"].value_counts())
-print(f"\nSurvival rate: {df['Survived'].mean()*100:.1f}%")</div>
-
-  <div class="output-console">0    549    ← Died
-1    342    ← Survived
-
-Survival rate: 38.4%</div>
-
-  <div style="display:flex;gap:4px;margin:16px 0;height:50px;border-radius:10px;overflow:hidden;">
-    <div style="flex:549;background:linear-gradient(90deg,#f85149,rgba(248,81,73,0.6));display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:14px;color:#fff;">Died: 549 (61.6%)</div>
-    <div style="flex:342;background:linear-gradient(90deg,rgba(16,185,129,0.6),var(--clean-green));display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:14px;color:#fff;">Survived: 342 (38.4%)</div>
-  </div>
-</div>
-
-<div class="card card-analyze">
-  <h3>Technique 2: GroupBy — Survival by Category</h3>
-  <p><code>groupby()</code> splits data into groups, applies a function, and combines results. The most powerful analysis tool in Pandas!</p>
-
-  <div class="code-line"># Survival rate by gender
-print("By Gender:")
-print(df.groupby("Sex")["Survived"].mean() * 100)
-
-# Survival rate by class
-print("\nBy Class:")
-print(df.groupby("Pclass")["Survived"].mean() * 100)</div>
-
-  <div class="output-console">By Gender:
-Sex
-0    18.9%    ← Male survival: only 18.9%!
-1    74.2%    ← Female survival: 74.2%!
-
-By Class:
-Pclass
-1    63.0%    ← 1st class: 63% survived
-2    47.3%    ← 2nd class: 47%
-3    24.2%    ← 3rd class: only 24%!</div>
-
-  <div style="background:rgba(139,92,246,0.08);border:2px solid rgba(139,92,246,0.25);border-radius:12px;padding:20px;margin:16px 0;">
-    <div style="font-family:'Fredoka One',cursive;color:var(--analyze-purple);font-size:18px;margin-bottom:12px;">🔍 Key Findings!</div>
-    <div style="display:grid;gap:10px;">
-      <div style="display:flex;gap:12px;align-items:center;">
-        <div style="font-size:24px;">👩</div>
-        <div><strong style="color:#fff;">Women survived at 4× the rate of men</strong> (74% vs 19%) — "women and children first!" policy confirmed by data.</div>
-      </div>
-      <div style="display:flex;gap:12px;align-items:center;">
-        <div style="font-size:24px;">🎩</div>
-        <div><strong style="color:#fff;">1st class survived at 2.6× the rate of 3rd class</strong> (63% vs 24%) — wealth = access to lifeboats.</div>
-      </div>
+  <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:18px;margin:14px 0;">
+    <div style="font-family:'Fira Code',monospace;font-size:13px;color:var(--muted);line-height:2;">
+      σ(-1000) → ~0.000  &nbsp;(very negative → near 0)<br>
+      σ(-2)    → 0.119<br>
+      σ(0)     → <span style="color:var(--log-amber);font-weight:700;">0.500</span>  &nbsp;(the magic threshold!)<br>
+      σ(2)     → 0.881<br>
+      σ(1000)  → ~1.000  &nbsp;(very positive → near 1)
     </div>
   </div>
+
+  <div class="tip-box tip-box-sig">🌊 <strong>The Beauty of Sigmoid:</strong> No matter how big or small z gets, the output stays between 0 and 1 — perfect for representing probabilities!</div>
 </div>
 
-<div class="card card-analyze">
-  <h3>Technique 3: Cross-Tabulation (GroupBy with 2 Variables)</h3>
+<div class="card card-log">
+  <h3>Putting It Together — Logistic Regression Formula</h3>
 
-  <div class="code-line"># Survival by class AND gender combined
-cross = df.groupby(["Pclass", "Sex"])["Survived"].mean() * 100
-print(cross.round(1))</div>
-
-  <div class="output-console">Pclass  Sex
-1       0      36.8%    ← 1st class male
-        1      96.8%    ← 1st class female — almost ALL survived!
-2       0      15.7%    ← 2nd class male
-        1      92.1%    ← 2nd class female
-3       0      13.5%    ← 3rd class male — worst odds
-        1      50.0%    ← 3rd class female</div>
-
-  <div style="overflow-x:auto;margin:16px 0;">
-    <table class="data-table">
-      <thead><tr><th class="th-analyze"></th><th class="th-analyze">Male</th><th class="th-analyze">Female</th></tr></thead>
-      <tbody>
-        <tr><td><strong>1st Class</strong></td><td>36.8%</td><td style="color:var(--clean-green);font-weight:700;">96.8% 🟢</td></tr>
-        <tr><td><strong>2nd Class</strong></td><td>15.7%</td><td style="color:var(--clean-green);font-weight:700;">92.1% 🟢</td></tr>
-        <tr><td><strong>3rd Class</strong></td><td style="color:#f85149;font-weight:700;">13.5% 🔴</td><td>50.0%</td></tr>
-      </tbody>
-    </table>
+  <div class="formula-box f-log">
+    <div class="formula-label" style="color:var(--log-orange);">The Two-Step Process</div>
+    <div class="formula">z = w·x + b &nbsp; (linear part)</div>
+    <div class="formula">P(y=1) = σ(z) = 1 / (1 + e<sup>-z</sup>)</div>
+    <div class="formula-explain">Step 1: Compute a linear combination (just like linear regression!)<br>Step 2: Pass it through sigmoid → get a probability!</div>
   </div>
 
-  <div class="tip-box tip-box-analyze">🎯 <strong>The Story:</strong> If you were a 1st-class woman, you had a 97% chance of surviving. If you were a 3rd-class man, only 13.5%. Class and gender were literally the difference between life and death.</div>
+  <div class="flow-pipe">
+    <div class="flow-step" style="background:var(--lin-blue);color:#fff;border-radius:8px;">Features (x)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step" style="background:var(--log-orange);color:#000;border-radius:8px;">z = w·x + b</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step" style="background:var(--sig-purple);color:#fff;border-radius:8px;">σ(z)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step" style="background:var(--good-green);color:#000;border-radius:8px;">Probability!</div>
+  </div>
+
+  <p style="margin-top:14px;"><strong>The Decision Rule:</strong></p>
+  <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:18px;margin:10px 0;">
+    <div style="font-family:'Fira Code',monospace;font-size:14px;line-height:2;color:var(--muted);">
+      if probability ≥ <span style="color:var(--log-amber);font-weight:700;">0.5</span>:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;predict = <span style="color:var(--good-green);font-weight:700;">1 (Survived / Spam / Yes)</span><br>
+      else:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;predict = <span style="color:var(--err-rose);font-weight:700;">0 (Died / Not Spam / No)</span>
+    </div>
+  </div>
+  <div class="tip-box tip-box-log">🎯 <strong>0.5 is the default threshold</strong>, but you can change it! For medical diagnosis where missing a disease is dangerous, you might use 0.3 (be more cautious). For spam, you might use 0.7 (only block if very sure).</div>
 </div>
 
-<div class="card card-analyze">
-  <h3>Technique 4: Descriptive Statistics by Group</h3>
+<div class="card card-log">
+  <h3>Real Example — Predicting Titanic Survival</h3>
+  <p>Let's predict who survived the Titanic using just two features: <strong>Sex</strong> and <strong>Pclass</strong> (passenger class).</p>
 
-  <div class="code-line"># Compare fares by survival
-print("Average fare — Survived vs Not:")
-print(df.groupby("Survived")["Fare"].mean().round(2))
+  <div class="code-line">import pandas as pd
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
-# Compare ages
-print("\nAverage age — Survived vs Not:")
-print(df.groupby("Survived")["Age"].mean().round(1))</div>
+# Load the cleaned Titanic data (from last class!)
+df = pd.read_csv('titanic_clean.csv')
 
-  <div class="output-console">Average fare — Survived vs Not:
-Survived
-0    22.12    ← Died: average fare ₹22
-1    48.40    ← Survived: average fare ₹48 — 2× more!
+# Features and target
+X = df[['Sex', 'Pclass', 'Age', 'Fare']]   # Sex: 0=male, 1=female
+y = df['Survived']                          # 0=died, 1=survived
 
-Average age — Survived vs Not:
-Survived
-0    30.6     ← Died: average age 30.6
-1    28.3     ← Survived: slightly younger (28.3)</div>
+# Split
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# Train Logistic Regression — same 2-line pattern!
+model = LogisticRegression(max_iter=1000)
+model.fit(X_train, y_train)
+
+# Predict
+y_pred = model.predict(X_test)
+y_proba = model.predict_proba(X_test)   # Get probabilities!
+
+# Evaluate
+print(f"Accuracy: {accuracy_score(y_test, y_pred)*100:.1f}%")
+print(f"\nLearned weights:")
+for feature, weight in zip(X.columns, model.coef_[0]):
+    print(f"  {feature:8s} → weight = {weight:+.3f}")
+print(f"  Intercept → {model.intercept_[0]:+.3f}")</div>
+
+  <div class="output-console">Accuracy: 80.4%
+
+Learned weights:
+  Sex      → weight = +2.491   ← Female = MUCH higher survival! 👩
+  Pclass   → weight = -1.108   ← Higher class number = lower survival 🎟️
+  Age      → weight = -0.034   ← Older = slightly lower survival
+  Fare     → weight = +0.002   ← Expensive ticket = slightly higher</div>
+
+  <div class="tip-box tip-box-log">💡 <strong>Reading the Weights:</strong> Positive weight = higher chance of survival when feature increases. Negative weight = lower chance. The model confirms history: women in 1st class had the best odds!</div>
 </div>
 
-<div class="card card-analyze">
-  <h3>Technique 5: Correlation — Which Features Matter Most?</h3>
-  <p><strong>Correlation</strong> measures how strongly two variables are connected (-1 to +1). Values close to ±1 = strong relationship.</p>
+<div class="card card-log">
+  <h3>Predicting a Single Passenger</h3>
 
-  <div class="code-line"># Correlation with Survived
-print("Correlation with Survival:")
-print(df.corr()["Survived"].sort_values(ascending=False).round(3))</div>
+  <div class="code-line"># Meet Rose: Female (1), 1st class (1), age 19, paid ₹100
+rose = [[1, 1, 19, 100]]
 
-  <div class="output-console">Correlation with Survival:
-Survived      1.000    ← itself
-Sex           0.543    ← STRONGEST! Female = more likely to survive
-Fare          0.257    ← Higher fare = more likely
-Parch         0.082    ← Slight positive
-Embarked_Q   -0.004    ← Almost none
-SibSp        -0.035    ← Slight negative
-Age          -0.064    ← Slight negative
-Embarked_S   -0.156    ← Boarding at Southampton = less likely
-Pclass       -0.338    ← Higher class number = LESS likely (3rd class worst)</div>
+# Get the prediction
+prediction = model.predict(rose)[0]
+probabilities = model.predict_proba(rose)[0]
 
-  <div style="background:rgba(139,92,246,0.08);border:2px solid rgba(139,92,246,0.25);border-radius:12px;padding:20px;margin:16px 0;">
-    <div style="font-family:'Fredoka One',cursive;color:var(--analyze-purple);font-size:16px;margin-bottom:12px;">📊 Top Survival Predictors (by correlation)</div>
-    <div style="display:grid;gap:6px;">
-      <div style="display:flex;align-items:center;gap:10px;"><div style="width:60%;max-width:200px;height:24px;background:linear-gradient(90deg,var(--clean-green),var(--clean-teal));border-radius:6px;display:flex;align-items:center;padding-left:8px;font-family:'Fira Code',monospace;font-size:11px;color:#000;">0.543</div><span style="font-size:14px;">Sex (Female +++ )</span></div>
-      <div style="display:flex;align-items:center;gap:10px;"><div style="width:38%;max-width:200px;height:24px;background:rgba(16,185,129,0.5);border-radius:6px;display:flex;align-items:center;padding-left:8px;font-family:'Fira Code',monospace;font-size:11px;color:#000;">−0.338</div><span style="font-size:14px;">Pclass (1st class ++ )</span></div>
-      <div style="display:flex;align-items:center;gap:10px;"><div style="width:30%;max-width:200px;height:24px;background:rgba(16,185,129,0.35);border-radius:6px;display:flex;align-items:center;padding-left:8px;font-family:'Fira Code',monospace;font-size:11px;color:#fff;">0.257</div><span style="font-size:14px;">Fare (Higher fare + )</span></div>
+print(f"Rose's features: Female, 1st class, age 19, ₹100 fare")
+print(f"P(died)     = {probabilities[0]:.3f}  ({probabilities[0]*100:.1f}%)")
+print(f"P(survived) = {probabilities[1]:.3f}  ({probabilities[1]*100:.1f}%)")
+print(f"Prediction: {'SURVIVED ✅' if prediction==1 else 'DIED ❌'}")
+
+print("\n" + "="*40)
+
+# Meet Jack: Male (0), 3rd class (3), age 20, paid ₹8
+jack = [[0, 3, 20, 8]]
+prediction = model.predict(jack)[0]
+probabilities = model.predict_proba(jack)[0]
+
+print(f"\nJack's features: Male, 3rd class, age 20, ₹8 fare")
+print(f"P(died)     = {probabilities[0]:.3f}  ({probabilities[0]*100:.1f}%)")
+print(f"P(survived) = {probabilities[1]:.3f}  ({probabilities[1]*100:.1f}%)")
+print(f"Prediction: {'SURVIVED ✅' if prediction==1 else 'DIED ❌'}")</div>
+
+  <div class="output-console">Rose's features: Female, 1st class, age 19, ₹100 fare
+P(died)     = 0.052  (5.2%)
+P(survived) = 0.948  (94.8%)
+Prediction: SURVIVED ✅
+
+========================================
+
+Jack's features: Male, 3rd class, age 20, ₹8 fare
+P(died)     = 0.892  (89.2%)
+P(survived) = 0.108  (10.8%)
+Prediction: DIED ❌
+
+😢 The model agrees with the movie!</div>
+</div>
+
+<!-- Interactive: Sigmoid -->
+<div class="demo-box box-sig">
+  <div class="box-title">🌊 Interactive: The Sigmoid in Action</div>
+  <p style="text-align:center;color:var(--muted);margin-bottom:16px;">Slide z and watch the sigmoid output change. See where the decision flips!</p>
+  <div class="slider-row">
+    <label>z value:</label>
+    <input type="range" id="zSlider" min="-8" max="8" step="0.1" value="0">
+    <div class="val" id="zVal">0.0</div>
+  </div>
+  <div id="sigmoidPlot"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;">
+    <div style="background:rgba(0,0,0,0.3);border-radius:8px;padding:14px;text-align:center;">
+      <div style="font-size:11px;color:var(--muted);">σ(z) = Probability</div>
+      <div id="sigOutput" style="font-family:'Fredoka One',cursive;font-size:26px;color:var(--sig-purple);">0.500</div>
+    </div>
+    <div style="background:rgba(0,0,0,0.3);border-radius:8px;padding:14px;text-align:center;">
+      <div style="font-size:11px;color:var(--muted);">Decision (threshold = 0.5)</div>
+      <div id="sigDecision" style="font-family:'Fredoka One',cursive;font-size:22px;color:var(--good-green);">Class 1 ✅</div>
     </div>
   </div>
 </div>
 
-<div class="card card-analyze">
-  <h3>Technique 6: Filtering — Ask Specific Questions</h3>
-
-  <div class="code-line"># How many children (age < 12) survived?
-children = df[df["Age"] < 12]
-print(f"Children on board: {len(children)}")
-print(f"Children survived: {children['Survived'].sum()}")
-print(f"Child survival rate: {children['Survived'].mean()*100:.1f}%")
-
-# Rich passengers (fare > 100)
-rich = df[df["Fare"] > 100]
-print(f"\nRich passengers: {len(rich)}")
-print(f"Rich survival rate: {rich['Survived'].mean()*100:.1f}%")
-
-# Women in 3rd class
-women_3rd = df[(df["Sex"] == 1) & (df["Pclass"] == 3)]
-print(f"\nWomen in 3rd class: {len(women_3rd)}")
-print(f"Their survival rate: {women_3rd['Survived'].mean()*100:.1f}%")</div>
-
-  <div class="output-console">Children on board: 68
-Children survived: 40
-Child survival rate: 58.8%
-
-Rich passengers: 34
-Rich survival rate: 73.5%
-
-Women in 3rd class: 144
-Their survival rate: 50.0%</div>
-</div>
-
-<!-- Interactive: Ask the Data -->
-<div class="demo-box box-analyze">
-  <div class="box-title">🔍 Interactive: Ask the Titanic Data</div>
-  <p style="text-align:center;color:var(--muted);margin-bottom:16px;">Pick a question and see the Pandas code + answer!</p>
+<!-- Interactive: Titanic Predictor -->
+<div class="demo-box box-log">
+  <div class="box-title">🚢 Interactive: Predict Titanic Survival</div>
+  <p style="text-align:center;color:var(--muted);margin-bottom:16px;">Pick a passenger profile and see what logistic regression predicts!</p>
   <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
-    <button class="btn btn-analyze" onclick="askData('overall')">Overall Survival</button>
-    <button class="btn btn-analyze" onclick="askData('gender')">By Gender</button>
-    <button class="btn btn-analyze" onclick="askData('class')">By Class</button>
-    <button class="btn btn-analyze" onclick="askData('age')">By Age Group</button>
-    <button class="btn btn-analyze" onclick="askData('family')">Family Size</button>
-    <button class="btn btn-analyze" onclick="askData('fare')">By Fare</button>
+    <button class="btn btn-log" onclick="titanicPredict('rose')">👩 Rose (Female, 1st class, 19)</button>
+    <button class="btn btn-log" onclick="titanicPredict('jack')">👨 Jack (Male, 3rd class, 20)</button>
+    <button class="btn btn-log" onclick="titanicPredict('child')">👶 Child (Female, 2nd class, 5)</button>
+    <button class="btn btn-log" onclick="titanicPredict('rich')">🎩 Rich man (Male, 1st class, 45)</button>
+    <button class="btn btn-log" onclick="titanicPredict('elderly')">👴 Elderly (Male, 3rd class, 65)</button>
   </div>
-  <div id="analyzeOutput"></div>
+  <div id="titanicOutput"></div>
 </div>
 
 
-<!-- ╔══════════ PUTTING IT ALL TOGETHER ══════════╗ -->
-<div class="section-divider div-viz">
-  <div class="label">🚢 The Complete Pipeline</div>
+<!-- ╔══════════ COMPARISON ══════════╗ -->
+<div class="section-divider div-cmp">
+  <div class="label">⚖️ Linear vs Logistic — Side by Side</div>
 </div>
 
-<div class="card card-viz">
-  <h3>From CSV to Insights — The Full Journey</h3>
+<div class="card card-cmp">
+  <h3>The Cheat Sheet</h3>
+  <div style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:separate;border-spacing:0;border-radius:10px;overflow:hidden;font-size:14px;">
+      <thead>
+        <tr>
+          <th style="background:rgba(16,185,129,0.15);color:var(--good-green);padding:12px;text-align:left;font-family:'Fira Code',monospace;border-bottom:2px solid rgba(16,185,129,0.3);"></th>
+          <th style="background:rgba(59,130,246,0.12);color:var(--lin-blue);padding:12px;text-align:center;font-family:'Fira Code',monospace;border-bottom:2px solid rgba(59,130,246,0.3);">📈 Linear Regression</th>
+          <th style="background:rgba(249,115,22,0.12);color:var(--log-orange);padding:12px;text-align:center;font-family:'Fira Code',monospace;border-bottom:2px solid rgba(249,115,22,0.3);">📊 Logistic Regression</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style="padding:10px;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);"><strong style="color:#fff;">Predicts</strong></td><td style="padding:10px;text-align:center;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);">A number (continuous)</td><td style="padding:10px;text-align:center;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);">A category (probability)</td></tr>
+        <tr><td style="padding:10px;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);"><strong style="color:#fff;">Output range</strong></td><td style="padding:10px;text-align:center;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);">−∞ to +∞</td><td style="padding:10px;text-align:center;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);">0 to 1</td></tr>
+        <tr><td style="padding:10px;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);"><strong style="color:#fff;">Type of problem</strong></td><td style="padding:10px;text-align:center;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);">Regression</td><td style="padding:10px;text-align:center;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);">Classification</td></tr>
+        <tr><td style="padding:10px;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);"><strong style="color:#fff;">Equation</strong></td><td style="padding:10px;text-align:center;color:var(--lin-blue);font-family:'Fira Code',monospace;border-bottom:1px solid rgba(255,255,255,0.05);">ŷ = w·x + b</td><td style="padding:10px;text-align:center;color:var(--log-orange);font-family:'Fira Code',monospace;border-bottom:1px solid rgba(255,255,255,0.05);">ŷ = σ(w·x + b)</td></tr>
+        <tr><td style="padding:10px;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);"><strong style="color:#fff;">Cost function</strong></td><td style="padding:10px;text-align:center;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);">Mean Squared Error</td><td style="padding:10px;text-align:center;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);">Log Loss (Cross-Entropy)</td></tr>
+        <tr><td style="padding:10px;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);"><strong style="color:#fff;">Metric</strong></td><td style="padding:10px;text-align:center;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);">R², MSE, MAE</td><td style="padding:10px;text-align:center;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);">Accuracy, F1, AUC</td></tr>
+        <tr><td style="padding:10px;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);"><strong style="color:#fff;">sklearn class</strong></td><td style="padding:10px;text-align:center;color:var(--lin-blue);font-family:'Fira Code',monospace;font-size:12px;border-bottom:1px solid rgba(255,255,255,0.05);">LinearRegression()</td><td style="padding:10px;text-align:center;color:var(--log-orange);font-family:'Fira Code',monospace;font-size:12px;border-bottom:1px solid rgba(255,255,255,0.05);">LogisticRegression()</td></tr>
+        <tr><td style="padding:10px;color:var(--muted);"><strong style="color:#fff;">Use case</strong></td><td style="padding:10px;text-align:center;color:var(--muted);">House price, salary, temperature</td><td style="padding:10px;text-align:center;color:var(--muted);">Spam, disease, survival</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 
-  <div style="display:grid;gap:8px;margin:20px 0;">
-    <div style="display:flex;gap:0;align-items:center;">
-      <div style="background:var(--data-blue);color:#fff;padding:12px 18px;border-radius:10px 0 0 10px;font-family:'Fredoka One',cursive;font-size:14px;min-width:120px;text-align:center;">1. Load</div>
-      <div style="flex:1;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:0 10px 10px 0;padding:10px 16px;font-size:14px;color:var(--muted);">pd.read_csv() → 891 rows × 12 columns</div>
+<div class="card card-cmp">
+  <h3>The Same 5-Line Pattern Works for Both!</h3>
+  <p>Here's the beautiful thing — once you know the sklearn pattern, you know <strong>most ML algorithms</strong>!</p>
+
+  <div class="code-line"># 📈 LINEAR REGRESSION (predict a number)
+from sklearn.linear_model import LinearRegression
+model = LinearRegression()
+model.fit(X_train, y_train)
+predictions = model.predict(X_test)
+score = model.score(X_test, y_test)   # R²
+
+# 📊 LOGISTIC REGRESSION (predict a category)
+from sklearn.linear_model import LogisticRegression
+model = LogisticRegression()
+model.fit(X_train, y_train)
+predictions = model.predict(X_test)
+score = model.score(X_test, y_test)   # Accuracy</div>
+
+  <div class="tip-box tip-box-cmp">🎉 <strong>Notice anything?</strong> The code is IDENTICAL except for the import! This pattern (<code>fit → predict → score</code>) works for almost every sklearn algorithm. Master this, and you can use Random Forests, SVMs, KNN, Gradient Boosting — all the same way!</div>
+</div>
+
+<div class="card card-cmp">
+  <h3>When to Use Which?</h3>
+  <p>Ask yourself one question: <strong>"What am I trying to predict?"</strong></p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0;">
+    <div style="background:rgba(59,130,246,0.08);border:2px solid rgba(59,130,246,0.25);border-radius:12px;padding:20px;">
+      <div style="font-family:'Fredoka One',cursive;color:var(--lin-blue);font-size:16px;margin-bottom:10px;">📈 Use Linear Regression when:</div>
+      <ul style="padding-left:20px;font-size:14px;color:var(--muted);line-height:1.9;">
+        <li>You're predicting a <strong style="color:#fff;">continuous number</strong></li>
+        <li>House prices, stock prices, salaries</li>
+        <li>Temperature tomorrow</li>
+        <li>How many products will be sold?</li>
+        <li>Time to complete a task</li>
+      </ul>
     </div>
-    <div style="display:flex;gap:0;align-items:center;">
-      <div style="background:var(--load-orange);color:#000;padding:12px 18px;border-radius:10px 0 0 10px;font-family:'Fredoka One',cursive;font-size:14px;min-width:120px;text-align:center;">2. Explore</div>
-      <div style="flex:1;background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.2);border-radius:0 10px 10px 0;padding:10px 16px;font-size:14px;color:var(--muted);">head(), shape, describe(), isnull() → found 3 problems</div>
-    </div>
-    <div style="display:flex;gap:0;align-items:center;">
-      <div style="background:var(--clean-green);color:#000;padding:12px 18px;border-radius:10px 0 0 10px;font-family:'Fredoka One',cursive;font-size:14px;min-width:120px;text-align:center;">3. Clean</div>
-      <div style="flex:1;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:0 10px 10px 0;padding:10px 16px;font-size:14px;color:var(--muted);">Fill missing, drop useless, encode text → 891 × 9, all clean</div>
-    </div>
-    <div style="display:flex;gap:0;align-items:center;">
-      <div style="background:var(--analyze-purple);color:#fff;padding:12px 18px;border-radius:10px 0 0 10px;font-family:'Fredoka One',cursive;font-size:14px;min-width:120px;text-align:center;">4. Analyze</div>
-      <div style="flex:1;background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.2);border-radius:0 10px 10px 0;padding:10px 16px;font-size:14px;color:var(--muted);">value_counts, groupby, corr, filter → found survival patterns</div>
-    </div>
-    <div style="display:flex;gap:0;align-items:center;">
-      <div style="background:var(--viz-rose);color:#fff;padding:12px 18px;border-radius:10px 0 0 10px;font-family:'Fredoka One',cursive;font-size:14px;min-width:120px;text-align:center;">5. Insights</div>
-      <div style="flex:1;background:rgba(244,63,94,0.08);border:1px solid rgba(244,63,94,0.2);border-radius:0 10px 10px 0;padding:10px 16px;font-size:14px;color:var(--muted);">Women 74% vs men 19%. 1st class 63% vs 3rd class 24%. Data tells the story!</div>
+    <div style="background:rgba(249,115,22,0.08);border:2px solid rgba(249,115,22,0.25);border-radius:12px;padding:20px;">
+      <div style="font-family:'Fredoka One',cursive;color:var(--log-orange);font-size:16px;margin-bottom:10px;">📊 Use Logistic Regression when:</div>
+      <ul style="padding-left:20px;font-size:14px;color:var(--muted);line-height:1.9;">
+        <li>You're predicting a <strong style="color:#fff;">category / yes-no</strong></li>
+        <li>Will customer churn? (yes/no)</li>
+        <li>Is this email spam? (yes/no)</li>
+        <li>Did the patient survive? (yes/no)</li>
+        <li>Will the loan be repaid? (yes/no)</li>
+      </ul>
     </div>
   </div>
+</div>
 
-  <div style="background:rgba(0,0,0,0.3);border-radius:14px;padding:24px;margin:20px 0;">
-    <div style="font-family:'Fredoka One',cursive;font-size:18px;color:var(--viz-rose);margin-bottom:16px;text-align:center;">🏆 What We Discovered About the Titanic</div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;">
-      <div style="background:rgba(16,185,129,0.1);border:2px solid rgba(16,185,129,0.3);border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-family:'Fredoka One',cursive;font-size:28px;color:var(--clean-green);">38.4%</div>
-        <div style="font-size:13px;color:var(--muted);">Overall survival rate</div>
-      </div>
-      <div style="background:rgba(236,72,153,0.1);border:2px solid rgba(236,72,153,0.3);border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-family:'Fredoka One',cursive;font-size:28px;color:var(--analyze-pink);">74.2%</div>
-        <div style="font-size:13px;color:var(--muted);">Female survival</div>
-      </div>
-      <div style="background:rgba(248,81,73,0.1);border:2px solid rgba(248,81,73,0.3);border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-family:'Fredoka One',cursive;font-size:28px;color:#f85149;">18.9%</div>
-        <div style="font-size:13px;color:var(--muted);">Male survival</div>
-      </div>
-      <div style="background:rgba(59,130,246,0.1);border:2px solid rgba(59,130,246,0.3);border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-family:'Fredoka One',cursive;font-size:28px;color:var(--data-blue);">96.8%</div>
-        <div style="font-size:13px;color:var(--muted);">1st class women survived</div>
-      </div>
-      <div style="background:rgba(249,115,22,0.1);border:2px solid rgba(249,115,22,0.3);border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-family:'Fredoka One',cursive;font-size:28px;color:var(--load-orange);">13.5%</div>
-        <div style="font-size:13px;color:var(--muted);">3rd class men survived</div>
-      </div>
-      <div style="background:rgba(139,92,246,0.1);border:2px solid rgba(139,92,246,0.3);border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-family:'Fredoka One',cursive;font-size:28px;color:var(--analyze-purple);">0.543</div>
-        <div style="font-size:13px;color:var(--muted);">Sex correlation (strongest)</div>
-      </div>
-    </div>
-  </div>
 
-  <div class="tip-box tip-box-viz">🚀 <strong>Next Steps:</strong> With this clean, analyzed dataset you could now build a <strong>Machine Learning model</strong> to predict survival! That's exactly what Kaggle competitors do — and you just completed the hardest part (data prep takes 80% of the work in real data science!).</div>
+<!-- ╔══════════ KEY TAKEAWAYS ══════════╗ -->
+<div class="card card-cmp">
+  <h3>🎓 Key Takeaways for Today</h3>
+  <ol style="padding-left:24px;line-height:2.2;">
+    <li><strong>Linear Regression</strong> draws a line: <code style="color:var(--lin-blue);">ŷ = w·x + b</code> to predict numbers</li>
+    <li><strong>Logistic Regression</strong> wraps that line in a sigmoid: <code style="color:var(--log-orange);">σ(w·x + b)</code> to predict probabilities</li>
+    <li>The <strong>sigmoid function</strong> squashes any number to [0, 1] — that's how we get probabilities</li>
+    <li><strong>Cost function</strong> measures how bad predictions are; <strong>gradient descent</strong> reduces it</li>
+    <li>Both use the same sklearn pattern: <code style="color:var(--good-green);">.fit() → .predict() → .score()</code></li>
+    <li>"Logistic Regression" is for <strong>CLASSIFICATION</strong> despite the misleading name!</li>
+  </ol>
 </div>
 
 
 <!-- ╔══════════ QUIZ ══════════╗ -->
 <div class="section-divider div-quiz">
-  <div class="label">⚡ Final Knowledge Check</div>
+  <div class="label">⚡ Knowledge Check</div>
 </div>
 
 <div class="quiz-wrap">
   <div class="quiz-header">
-    <h2>Data Science Basics Quiz</h2>
-    <p>15 questions covering Datasets, CSV, Loading, Cleaning &amp; Analysis</p>
+    <h2>Linear &amp; Logistic Regression Quiz</h2>
+    <p>15 questions covering both algorithms — let's see what stuck!</p>
   </div>
   <div class="quiz-scorebar">
     <div class="score-chip" id="scoreChip">0 / 15</div>
@@ -896,110 +846,201 @@ Their survival rate: 50.0%</div>
 </div>
 
 <script>
-/* ══════════ EXPLORE COMMANDS ══════════ */
-function showExplore(cmd){
-  const out=document.getElementById('exploreOutput');
-  const cmds={
-    head:{code:'df.head()',desc:'Shows first 5 rows — your first look at the actual data!',output:`   Survived  Pclass     Sex   Age  SibSp  Parch    Fare Embarked
-0         0       3    male  22.0      1      0   7.25        S
-1         1       1  female  38.0      1      0  71.28        C
-2         1       3  female  26.0      0      0   7.92        S
-3         1       1  female  35.0      1      0  53.10        S
-4         0       3    male  35.0      0      0   8.05        S`},
-    shape:{code:'df.shape',desc:'Returns (rows, columns) — how big is our dataset',output:`(891, 12)\n\n891 passengers, 12 features about each`},
-    dtypes:{code:'df.dtypes',desc:'Data type of each column — int, float, or object (text)',output:`PassengerId      int64\nSurvived         int64\nPclass           int64\nName            object  ← text!\nSex             object  ← text!\nAge            float64\nSibSp            int64\nParch            int64\nTicket          object  ← text!\nFare           float64\nCabin           object  ← text!\nEmbarked        object  ← text!`},
-    null:{code:'df.isnull().sum()',desc:'Count missing values per column — where is data incomplete?',output:`PassengerId      0\nSurvived         0\nPclass           0\nName             0\nSex              0\nAge            177   ← 😱 20% missing!\nSibSp            0\nParch            0\nTicket           0\nFare             0\nCabin          687   ← 😱 77% missing!\nEmbarked         2`},
-    value:{code:'df["Survived"].value_counts()',desc:'Count each unique value — how many survived vs died?',output:`0    549   ← Died (61.6%)\n1    342   ← Survived (38.4%)\n\nMost passengers did NOT survive.`},
-    unique:{code:'df["Embarked"].unique()',desc:'Show all unique values in a column',output:`['S' 'C' 'Q' nan]\n\nS = Southampton (UK) — most common\nC = Cherbourg (France)\nQ = Queenstown (Ireland)\nnan = 2 passengers have no port listed`}
-  };
-  const c=cmds[cmd];
-  out.innerHTML=`<div class="result-box" style="border-color:var(--load-orange);">
-    <div style="background:var(--load-orange);color:#000;padding:8px 12px;border-radius:8px;margin-bottom:8px;font-weight:700;font-size:14px;">Python Code:</div>
-    <div class="code-line" style="font-size:14px;">${c.code}</div>
-    <div style="font-size:14px;color:var(--muted);margin:8px 0;padding:0 4px;">${c.desc}</div>
-    <div style="background:var(--clean-green);color:#000;padding:8px 12px;border-radius:8px;margin:12px 0 8px;font-weight:700;font-size:14px;">Output:</div>
-    <div class="output-console" style="font-size:12px;">${c.output}</div>
-  </div>`;
+/* ══════════ LINEAR REGRESSION INTERACTIVE ══════════ */
+const housingData = [
+  {size:500,price:25},{size:750,price:40},{size:1000,price:55},{size:1200,price:65},{size:1500,price:85},
+  {size:1800,price:100},{size:2000,price:115},{size:2500,price:140},{size:3000,price:170},{size:3500,price:200}
+];
+
+function renderLinPlot(w, b){
+  const xMin=0,xMax=3800,yMin=0,yMax=220;
+  const W=440,H=240,padL=50,padB=40,padT=20,padR=20;
+  const plotW=W-padL-padR, plotH=H-padT-padB;
+  const xToPx=x=>padL+(x-xMin)/(xMax-xMin)*plotW;
+  const yToPx=y=>padT+plotH-(y-yMin)/(yMax-yMin)*plotH;
+
+  let svg=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:480px;">`;
+  // axes
+  svg+=`<line x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}" stroke="#444" stroke-width="1.5"/>`;
+  svg+=`<line x1="${padL}" y1="${padT}" x2="${padL}" y2="${H-padB}" stroke="#444" stroke-width="1.5"/>`;
+  svg+=`<text x="${W/2}" y="${H-8}" text-anchor="middle" fill="#8892a4" font-family="Fira Code" font-size="10">size (sq ft)</text>`;
+  svg+=`<text x="15" y="${H/2}" text-anchor="middle" fill="#8892a4" font-family="Fira Code" font-size="10" transform="rotate(-90 15 ${H/2})">price (₹L)</text>`;
+
+  // your line
+  const x1=xMin, y1=w*x1+b;
+  const x2=xMax, y2=w*x2+b;
+  svg+=`<line x1="${xToPx(x1)}" y1="${Math.max(padT,Math.min(H-padB,yToPx(y1)))}" x2="${xToPx(x2)}" y2="${Math.max(padT,Math.min(H-padB,yToPx(y2)))}" stroke="#06b6d4" stroke-width="2.5"/>`;
+
+  // residuals
+  housingData.forEach(p=>{
+    const pred=w*p.size+b;
+    svg+=`<line x1="${xToPx(p.size)}" y1="${yToPx(p.price)}" x2="${xToPx(p.size)}" y2="${yToPx(pred)}" stroke="#f43f5e" stroke-width="1" stroke-dasharray="2,2" opacity="0.7"/>`;
+  });
+
+  // points
+  housingData.forEach(p=>{
+    svg+=`<circle cx="${xToPx(p.size)}" cy="${yToPx(p.price)}" r="4" fill="#3b82f6"/>`;
+  });
+
+  svg+=`</svg>`;
+  return svg;
 }
 
-/* ══════════ CLEANING STEPS ══════════ */
-function showClean(step){
-  const out=document.getElementById('cleanOutput');
-  const steps={
-    missing:{title:'Check Missing Values',code:'df.isnull().sum()',output:'Age        177  (19.9% missing)\nCabin      687  (77.1% missing!)\nEmbarked     2  (0.2% missing)\n\nEverything else: 0 missing ✅',note:'Three columns need fixing. Age has 20% missing, Cabin has 77% missing (too much!), Embarked has only 2 missing.'},
-    fillage:{title:'Fill Age with Median',code:'df["Age"].fillna(df["Age"].median(), inplace=True)\nprint("Age median:", df["Age"].median())  # 28.0\nprint("Age missing now:", df["Age"].isnull().sum())',output:'Age median: 28.0\nAge missing now: 0  ✅',note:'Why median (28) instead of mean (29.7)? Median isn\'t affected by that 80-year-old outlier. It\'s a safer central value.'},
-    dropcabin:{title:'Drop Cabin Column',code:'df.drop("Cabin", axis=1, inplace=True)\nprint("Columns:", len(df.columns))  # 11 → 10',output:'Columns: 11 (was 12)\nCabin column removed! ✅',note:'77% missing = unsalvageable. If we tried to fill 687 values, we\'d be making up data. Better to drop it entirely.'},
-    encode:{title:'Encode Text → Numbers',code:'df["Sex"] = df["Sex"].map({"male": 0, "female": 1})\ndf = pd.get_dummies(df, columns=["Embarked"], drop_first=True)',output:'Sex: male→0, female→1\nEmbarked → Embarked_Q (0/1), Embarked_S (0/1)\n\nAll text columns now numeric! ✅',note:'ML models can\'t read text. map() works for 2 categories. get_dummies() (one-hot encoding) works for 3+ categories.'},
-    final:{title:'Final Validation',code:'print(df.isnull().sum().sum())  # Total missing\nprint(df.shape)\nprint(df.dtypes)',output:'Total missing values: 0 ✅\nShape: (891, 9)\nAll dtypes: int64 or float64 ✅\n\n🎉 DATA IS CLEAN AND READY!',note:'From 12 messy columns to 9 clean, all-numeric columns. Zero missing values. This data is now ready for analysis and ML!'}
-  };
-  const s=steps[step];
-  out.innerHTML=`<div class="result-box" style="border-color:var(--clean-green);">
-    <div style="font-family:'Fredoka One',cursive;font-size:18px;color:var(--clean-green);margin-bottom:10px;">🧹 ${s.title}</div>
-    <div class="code-line" style="font-size:13px;">${s.code}</div>
-    <div class="output-console" style="font-size:12px;">${s.output}</div>
-    <div style="margin-top:12px;padding:10px 14px;background:rgba(16,185,129,0.06);border-radius:8px;font-size:14px;color:var(--muted);">💡 ${s.note}</div>
-  </div>`;
-}
+function updateLinReg(){
+  const w=parseFloat(document.getElementById('slopeSlider').value);
+  const b=parseFloat(document.getElementById('interceptSlider').value);
+  document.getElementById('slopeVal').textContent=w.toFixed(3);
+  document.getElementById('interceptVal').textContent=b.toFixed(0);
+  document.getElementById('linRegPlot').innerHTML=renderLinPlot(w,b);
 
-/* ══════════ ASK THE DATA ══════════ */
-function askData(q){
-  const out=document.getElementById('analyzeOutput');
-  const qs={
-    overall:{title:'Overall Survival Rate',code:'print(df["Survived"].value_counts())\nprint(f"Rate: {df[\'Survived\'].mean()*100:.1f}%")',output:'Died:     549 (61.6%)\nSurvived: 342 (38.4%)\n\nMost passengers did NOT survive the Titanic.',visual:`<div style="display:flex;gap:3px;height:40px;border-radius:8px;overflow:hidden;margin-top:12px;">
-      <div style="flex:61.6;background:#f85149;display:flex;align-items:center;justify-content:center;font-family:'Fira Code',monospace;font-size:12px;color:#fff;">Died 61.6%</div>
-      <div style="flex:38.4;background:var(--clean-green);display:flex;align-items:center;justify-content:center;font-family:'Fira Code',monospace;font-size:12px;color:#fff;">Survived 38.4%</div></div>`},
-    gender:{title:'Survival by Gender',code:'df.groupby("Sex")["Survived"].mean() * 100',output:'Male (0):   18.9% survived\nFemale (1): 74.2% survived\n\n"Women and children first!" — confirmed by data.',visual:`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;">
-      <div style="background:rgba(248,81,73,0.1);border:2px solid rgba(248,81,73,0.3);border-radius:8px;padding:12px;text-align:center;">
-        <div style="font-size:12px;color:var(--muted);">Male</div><div style="font-family:'Fredoka One',cursive;font-size:28px;color:#f85149;">18.9%</div></div>
-      <div style="background:rgba(16,185,129,0.1);border:2px solid rgba(16,185,129,0.3);border-radius:8px;padding:12px;text-align:center;">
-        <div style="font-size:12px;color:var(--muted);">Female</div><div style="font-family:'Fredoka One',cursive;font-size:28px;color:var(--clean-green);">74.2%</div></div></div>`},
-    class:{title:'Survival by Ticket Class',code:'df.groupby("Pclass")["Survived"].mean() * 100',output:'1st Class: 63.0% survived\n2nd Class: 47.3% survived\n3rd Class: 24.2% survived\n\nWealth = access to lifeboats.',visual:`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px;">
-      <div style="background:rgba(16,185,129,0.1);border:2px solid rgba(16,185,129,0.3);border-radius:8px;padding:12px;text-align:center;">
-        <div style="font-size:12px;color:var(--muted);">1st Class</div><div style="font-family:'Fredoka One',cursive;font-size:24px;color:var(--clean-green);">63.0%</div></div>
-      <div style="background:rgba(249,115,22,0.1);border:2px solid rgba(249,115,22,0.3);border-radius:8px;padding:12px;text-align:center;">
-        <div style="font-size:12px;color:var(--muted);">2nd Class</div><div style="font-family:'Fredoka One',cursive;font-size:24px;color:var(--load-orange);">47.3%</div></div>
-      <div style="background:rgba(248,81,73,0.1);border:2px solid rgba(248,81,73,0.3);border-radius:8px;padding:12px;text-align:center;">
-        <div style="font-size:12px;color:var(--muted);">3rd Class</div><div style="font-family:'Fredoka One',cursive;font-size:24px;color:#f85149;">24.2%</div></div></div>`},
-    age:{title:'Survival by Age Group',code:'df["AgeGroup"] = pd.cut(df["Age"], bins=[0,12,18,35,60,100],\n  labels=["Child","Teen","Young Adult","Adult","Senior"])\ndf.groupby("AgeGroup")["Survived"].mean()*100',output:'Child (0-12):       58.8% ← Kids had best odds!\nTeen (13-18):       40.3%\nYoung Adult (19-35): 35.8%\nAdult (36-60):       39.0%\nSenior (60+):        26.8% ← Elderly had worst odds',visual:`<div style="display:flex;gap:4px;margin-top:12px;height:30px;border-radius:6px;overflow:hidden;">
-      <div style="flex:58.8;background:var(--clean-green);display:flex;align-items:center;justify-content:center;font-size:10px;color:#000;font-weight:700;">Child 59%</div>
-      <div style="flex:40.3;background:rgba(16,185,129,0.5);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;">Teen 40%</div>
-      <div style="flex:35.8;background:var(--load-orange);display:flex;align-items:center;justify-content:center;font-size:10px;color:#000;font-weight:700;">YA 36%</div>
-      <div style="flex:39;background:rgba(249,115,22,0.6);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;">Adult 39%</div>
-      <div style="flex:26.8;background:#f85149;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;">Senior 27%</div></div>`},
-    family:{title:'Survival by Family Size',code:'df["FamilySize"] = df["SibSp"] + df["Parch"] + 1\ndf.groupby("FamilySize")["Survived"].mean()*100',output:'Alone (1):     30.4% ← Traveling alone = worst\nSmall (2-4):   ~55%  ← Small families = best!\nLarge (5+):    ~16%  ← Large families = very bad\n\nSweet spot: 2-4 person families survived most!',visual:''},
-    fare:{title:'Survival by Fare Range',code:'df["FareGroup"] = pd.cut(df["Fare"],\n  bins=[0,10,30,100,600],\n  labels=["Budget","Economy","Business","Luxury"])\ndf.groupby("FareGroup")["Survived"].mean()*100',output:'Budget (₹0-10):     20.3%\nEconomy (₹10-30):   41.0%\nBusiness (₹30-100): 57.5%\nLuxury (₹100+):     73.5%\n\nMore money = more survival. Harsh reality.',visual:`<div style="display:flex;gap:4px;margin-top:12px;height:30px;border-radius:6px;overflow:hidden;">
-      <div style="flex:1;background:#f85149;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;">Budget 20%</div>
-      <div style="flex:1;background:var(--load-orange);display:flex;align-items:center;justify-content:center;font-size:10px;color:#000;font-weight:700;">Economy 41%</div>
-      <div style="flex:1;background:rgba(16,185,129,0.6);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;">Business 58%</div>
-      <div style="flex:1;background:var(--clean-green);display:flex;align-items:center;justify-content:center;font-size:10px;color:#000;font-weight:700;">Luxury 74%</div></div>`}
+  // MSE
+  let sse=0;
+  housingData.forEach(p=>{
+    const pred=w*p.size+b;
+    sse+=(p.price-pred)**2;
+  });
+  const mse=sse/housingData.length;
+  // R²
+  const meanY=housingData.reduce((s,p)=>s+p.price,0)/housingData.length;
+  let sst=0;
+  housingData.forEach(p=>{sst+=(p.price-meanY)**2;});
+  const r2=1-(sse/sst);
+
+  document.getElementById('mseDisplay').textContent=mse.toFixed(2);
+  document.getElementById('r2Display').textContent=r2.toFixed(3);
+  document.getElementById('r2Display').style.color=r2>0.9?'var(--good-green)':r2>0.5?'var(--log-amber)':'var(--err-rose)';
+}
+function findBest(){
+  // simple linear regression
+  const n=housingData.length;
+  const sumX=housingData.reduce((s,p)=>s+p.size,0);
+  const sumY=housingData.reduce((s,p)=>s+p.price,0);
+  const sumXY=housingData.reduce((s,p)=>s+p.size*p.price,0);
+  const sumX2=housingData.reduce((s,p)=>s+p.size*p.size,0);
+  const w=(n*sumXY-sumX*sumY)/(n*sumX2-sumX*sumX);
+  const b=(sumY-w*sumX)/n;
+  document.getElementById('slopeSlider').value=w;
+  document.getElementById('interceptSlider').value=b;
+  updateLinReg();
+}
+document.getElementById('slopeSlider').addEventListener('input',updateLinReg);
+document.getElementById('interceptSlider').addEventListener('input',updateLinReg);
+updateLinReg();
+
+
+/* ══════════ SIGMOID INTERACTIVE ══════════ */
+function renderSigmoidPlot(z){
+  const W=440,H=200,padL=40,padR=20,padT=20,padB=30;
+  const plotW=W-padL-padR, plotH=H-padT-padB;
+  const xMin=-8,xMax=8;
+  const xToPx=x=>padL+(x-xMin)/(xMax-xMin)*plotW;
+  const yToPx=y=>padT+plotH-y*plotH;
+  const sigmoid=z=>1/(1+Math.exp(-z));
+
+  let svg=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:480px;">`;
+  // axes
+  svg+=`<line x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}" stroke="#444" stroke-width="1.5"/>`;
+  svg+=`<line x1="${xToPx(0)}" y1="${padT}" x2="${xToPx(0)}" y2="${H-padB}" stroke="#444" stroke-width="1"/>`;
+  // 0.5 line
+  svg+=`<line x1="${padL}" y1="${yToPx(0.5)}" x2="${W-padR}" y2="${yToPx(0.5)}" stroke="#666" stroke-width="1" stroke-dasharray="3,3"/>`;
+  // labels
+  svg+=`<text x="${padL-5}" y="${yToPx(0)+4}" text-anchor="end" fill="#8892a4" font-family="Fira Code" font-size="10">0</text>`;
+  svg+=`<text x="${padL-5}" y="${yToPx(0.5)+4}" text-anchor="end" fill="#8892a4" font-family="Fira Code" font-size="10">0.5</text>`;
+  svg+=`<text x="${padL-5}" y="${yToPx(1)+4}" text-anchor="end" fill="#8892a4" font-family="Fira Code" font-size="10">1</text>`;
+  // sigmoid curve
+  let path='M ';
+  for(let x=xMin;x<=xMax;x+=0.2){
+    path+=`${xToPx(x)} ${yToPx(sigmoid(x))} L `;
+  }
+  path=path.slice(0,-3);
+  svg+=`<path d="${path}" stroke="#8b5cf6" stroke-width="3" fill="none"/>`;
+  // current point
+  const cx=xToPx(z), cy=yToPx(sigmoid(z));
+  svg+=`<line x1="${cx}" y1="${H-padB}" x2="${cx}" y2="${cy}" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="3,2"/>`;
+  svg+=`<line x1="${padL}" y1="${cy}" x2="${cx}" y2="${cy}" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="3,2"/>`;
+  svg+=`<circle cx="${cx}" cy="${cy}" r="6" fill="#f59e0b" stroke="#fff" stroke-width="2"/>`;
+  svg+=`</svg>`;
+  return svg;
+}
+function updateSigmoid(){
+  const z=parseFloat(document.getElementById('zSlider').value);
+  document.getElementById('zVal').textContent=z.toFixed(1);
+  const sig=1/(1+Math.exp(-z));
+  document.getElementById('sigmoidPlot').innerHTML=renderSigmoidPlot(z);
+  document.getElementById('sigOutput').textContent=sig.toFixed(3);
+  if(sig>=0.5){
+    document.getElementById('sigDecision').textContent='Class 1 ✅';
+    document.getElementById('sigDecision').style.color='var(--good-green)';
+  }else{
+    document.getElementById('sigDecision').textContent='Class 0 ❌';
+    document.getElementById('sigDecision').style.color='var(--err-rose)';
+  }
+}
+document.getElementById('zSlider').addEventListener('input',updateSigmoid);
+updateSigmoid();
+
+
+/* ══════════ TITANIC PREDICTOR ══════════ */
+function titanicPredict(person){
+  const profiles={
+    rose:{name:'Rose',desc:'Female, 1st class, age 19, ₹100 fare',sex:1,pclass:1,age:19,fare:100,emoji:'👩'},
+    jack:{name:'Jack',desc:'Male, 3rd class, age 20, ₹8 fare',sex:0,pclass:3,age:20,fare:8,emoji:'👨'},
+    child:{name:'Young Girl',desc:'Female, 2nd class, age 5, ₹30 fare',sex:1,pclass:2,age:5,fare:30,emoji:'👶'},
+    rich:{name:'Wealthy Man',desc:'Male, 1st class, age 45, ₹150 fare',sex:0,pclass:1,age:45,fare:150,emoji:'🎩'},
+    elderly:{name:'Elderly Man',desc:'Male, 3rd class, age 65, ₹10 fare',sex:0,pclass:3,age:65,fare:10,emoji:'👴'}
   };
-  const a=qs[q];
-  out.innerHTML=`<div class="result-box" style="border-color:var(--analyze-purple);">
-    <div style="font-family:'Fredoka One',cursive;font-size:18px;color:var(--analyze-purple);margin-bottom:10px;">🔍 ${a.title}</div>
-    <div class="code-line" style="font-size:13px;">${a.code}</div>
-    <div class="output-console" style="font-size:12px;">${a.output}</div>
-    ${a.visual}
+  const p=profiles[person];
+  // Approximate weights from the example
+  const w_sex=2.491, w_pclass=-1.108, w_age=-0.034, w_fare=0.002, intercept=2.0;
+  const z = w_sex*p.sex + w_pclass*p.pclass + w_age*p.age + w_fare*p.fare + intercept;
+  const prob = 1/(1+Math.exp(-z));
+  const survived = prob >= 0.5;
+  const out=document.getElementById('titanicOutput');
+  out.innerHTML=`<div class="result-box" style="border-color:${survived?'var(--good-green)':'var(--err-rose)'};">
+    <div style="text-align:center;margin-bottom:14px;">
+      <div style="font-size:42px;">${p.emoji}</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:18px;color:#fff;">${p.name}</div>
+      <div style="font-size:13px;color:var(--muted);">${p.desc}</div>
+    </div>
+    <div style="background:rgba(0,0,0,0.3);border-radius:8px;padding:14px;margin:10px 0;font-family:'Fira Code',monospace;font-size:13px;color:var(--muted);line-height:2;">
+      Step 1 (linear): z = ${w_sex}×${p.sex} + ${w_pclass}×${p.pclass} + ${w_age}×${p.age} + ${w_fare}×${p.fare} + ${intercept}<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span style="color:var(--log-orange);font-weight:700;">${z.toFixed(3)}</span><br>
+      Step 2 (sigmoid): σ(${z.toFixed(2)}) = <span style="color:var(--sig-purple);font-weight:700;">${prob.toFixed(3)}</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0;">
+      <div style="background:rgba(244,63,94,0.1);border-radius:8px;padding:10px;text-align:center;">
+        <div style="font-size:11px;color:var(--muted);">P(died)</div>
+        <div style="font-family:'Fredoka One',cursive;font-size:20px;color:var(--err-rose);">${((1-prob)*100).toFixed(1)}%</div>
+      </div>
+      <div style="background:rgba(16,185,129,0.1);border-radius:8px;padding:10px;text-align:center;">
+        <div style="font-size:11px;color:var(--muted);">P(survived)</div>
+        <div style="font-family:'Fredoka One',cursive;font-size:20px;color:var(--good-green);">${(prob*100).toFixed(1)}%</div>
+      </div>
+    </div>
+    <div style="text-align:center;font-family:'Fredoka One',cursive;font-size:22px;color:${survived?'var(--good-green)':'var(--err-rose)'};margin-top:10px;">
+      Prediction: ${survived?'SURVIVED ✅':'DIED ❌'}
+    </div>
   </div>`;
 }
 
 
 /* ══════════ QUIZ ══════════ */
 const QS=[
-  {q:'What does CSV stand for?',opts:['Computer Saved Values','Comma-Separated Values','Code System Variables','Column-Sorted Values'],ans:1,explain:'CSV = Comma-Separated Values — plain text file with commas between each value!'},
-  {q:'Which Pandas function loads a CSV file?',opts:['pd.load_csv()','pd.open_csv()','pd.read_csv()','pd.import_csv()'],ans:2,explain:'pd.read_csv("filename.csv") loads a CSV file into a DataFrame!'},
-  {q:'What does df.shape return?',opts:['Column names','(rows, columns)','Data types','First 5 rows'],ans:1,explain:'df.shape returns a tuple like (891, 12) — the number of rows and columns!'},
-  {q:'What does df.head() show?',opts:['Last 5 rows','All rows','First 5 rows','Column names only'],ans:2,explain:'df.head() shows the first 5 rows — your first look at the actual data!'},
-  {q:'What does NaN mean in a dataset?',opts:['Not a Number (missing data)','Negative and Null','New and Nice','No answer needed'],ans:0,explain:'NaN = Not a Number — Python\'s way of representing missing data!'},
-  {q:'In the Titanic dataset, what does Survived=1 mean?',opts:['Died','Survived','Unknown','First class'],ans:1,explain:'Survived=1 means the passenger survived, Survived=0 means they did not.'},
-  {q:'If 77% of a column is missing, you should:',opts:['Fill with mean','Fill with 0','Drop the column','Ignore it'],ans:2,explain:'If >50% of a column is missing, it\'s usually better to drop it entirely rather than make up data!'},
-  {q:'Why use median instead of mean to fill missing Age?',opts:['Median is faster','Median isn\'t affected by outliers','Median is always bigger','No reason'],ans:1,explain:'Median is resistant to outliers. The 80-year-old would skew the mean but not the median!'},
-  {q:'What does df.isnull().sum() do?',opts:['Counts total rows','Counts missing values per column','Sums all values','Checks for duplicates'],ans:1,explain:'isnull() marks True where data is missing, then sum() counts the Trues per column!'},
-  {q:'What does df.describe() show?',opts:['Only column names','Count, mean, std, min, max, quartiles','Just the mean','Data types'],ans:1,explain:'describe() gives you a full statistical summary — count, mean, std, min, 25%, 50%, 75%, max!'},
-  {q:'What Titanic survival rate did women have?',opts:['18.9%','38.4%','74.2%','96.8%'],ans:2,explain:'Women had a 74.2% survival rate vs men at 18.9% — "women and children first!"'},
-  {q:'What does groupby() do?',opts:['Groups data and applies functions per group','Sorts the data','Removes groups','Creates new columns'],ans:0,explain:'groupby() splits data into groups, applies a function (like mean), and combines results!'},
-  {q:'Correlation of 0.543 between Sex and Survived means:',opts:['No relationship','Weak negative','Moderate positive — being female helped survival','Perfect correlation'],ans:2,explain:'0.543 is a moderate positive correlation — the strongest predictor of survival was being female!'},
-  {q:'pd.get_dummies() is used for:',opts:['Creating dummy data','One-hot encoding categories','Removing columns','Filling missing values'],ans:1,explain:'get_dummies() converts categorical columns (like "S","C","Q") into separate 0/1 columns — one-hot encoding!'},
-  {q:'Which class had the highest survival rate?',opts:['3rd class','2nd class','1st class','All were equal'],ans:2,explain:'1st class had 63% survival, 2nd had 47%, 3rd had only 24%. Wealth = access to lifeboats!'}
+  {q:'Linear Regression predicts:',opts:['Categories like spam/not-spam','A continuous number','Probabilities only','Yes/no answers'],ans:1,explain:'Linear regression is for REGRESSION — predicting continuous numbers like price, salary, or temperature.'},
+  {q:'In the equation ŷ = w·x + b, what is "w"?',opts:['The bias','The weight (slope)','The error','The label'],ans:1,explain:'w is the weight — it tells us the slope of the line. Bigger w = steeper line.'},
+  {q:'What is "b" in ŷ = w·x + b?',opts:['Bigger value','The bias / intercept (where line crosses y-axis)','The best score','The boundary'],ans:1,explain:'b is the bias (or intercept). It shifts the line up or down — it\'s the value of ŷ when x=0.'},
+  {q:'What does MSE measure?',opts:['How good the data is','How far predictions are from actual values, squared and averaged','The model size','How fast training is'],ans:1,explain:'MSE = Mean Squared Error. It averages the squared differences between predictions and actual values. Lower = better!'},
+  {q:'Why do we SQUARE the errors in MSE?',opts:['Just for fun','To make negatives and positives both count, and punish big mistakes more','To make it run faster','To save memory'],ans:1,explain:'Squaring removes the sign (so -5 and +5 both become 25) AND makes big errors way more costly than small ones.'},
+  {q:'What does gradient descent do?',opts:['Stores the data','Iteratively finds the (w, b) that minimize the cost function','Splits the data','Plots a graph'],ans:1,explain:'Gradient descent is the optimization algorithm that searches for the lowest cost — like rolling a ball downhill to find the valley!'},
+  {q:'Despite its name, Logistic Regression is used for:',opts:['Regression (predicting numbers)','Classification (predicting categories)','Both equally','Image recognition only'],ans:1,explain:'Confusing but true — Logistic Regression is for CLASSIFICATION! The name comes from the logistic (sigmoid) function it uses.'},
+  {q:'What does the sigmoid function do?',opts:['Squashes any number into the range [0, 1]','Multiplies two numbers','Converts text to numbers','Sorts the data'],ans:0,explain:'σ(z) = 1/(1+e^-z) takes any input and outputs a value between 0 and 1 — perfect for representing probabilities!'},
+  {q:'σ(0) = ?',opts:['0.0','0.5','1.0','It\'s undefined'],ans:1,explain:'When z=0, σ(0) = 1/(1+e^0) = 1/(1+1) = 0.5. This is the decision threshold!'},
+  {q:'In Logistic Regression with default threshold 0.5, if probability = 0.78, the prediction is:',opts:['Class 0','Class 1','Cannot decide','Both classes'],ans:1,explain:'0.78 ≥ 0.5, so we predict Class 1 (positive class). The threshold of 0.5 is the dividing line.'},
+  {q:'For predicting house prices, you should use:',opts:['Logistic Regression','Linear Regression','Both equally','Neither'],ans:1,explain:'House price is a continuous number → Linear Regression! Logistic is for categories.'},
+  {q:'For predicting whether an email is spam, you should use:',opts:['Linear Regression','Logistic Regression','MSE Calculator','Random guessing'],ans:1,explain:'Spam/not-spam is a category (binary classification) → Logistic Regression is perfect!'},
+  {q:'What does model.predict_proba(X) return in Logistic Regression?',opts:['Just 0 or 1','The probabilities for each class','The accuracy score','The training data'],ans:1,explain:'predict_proba gives you the actual probabilities (e.g., [0.05, 0.95]) — useful when you want to know HOW confident the model is, or change the threshold.'},
+  {q:'In Titanic data, the model learns weight Sex = +2.49. This means:',opts:['Sex doesn\'t matter','Females (Sex=1) had MUCH higher survival probability','Males had higher survival','The weight is wrong'],ans:1,explain:'A large positive weight for Sex means: when Sex=1 (female), z increases a lot, so probability of survival goes up. Confirms history!'},
+  {q:'The sklearn pattern that works for almost ALL ML algorithms is:',opts:['load → save → exit','fit → predict → score','train → train → train','random → guess → hope'],ans:1,explain:'fit (train) → predict (use it) → score (evaluate). Master this 3-step pattern and you can use Random Forests, SVMs, KNN, and dozens more — all the same way!'}
 ];
 
 let correct=0,answered=0;
@@ -1013,9 +1054,7 @@ function buildQuiz(){
     const card=document.createElement('div');card.className='qcard';card.id='qcard'+qi;
     card.innerHTML=`<div class="qnum">QUESTION ${qi+1} OF ${QS.length}</div>
       <div class="qtext">${q.q}</div>
-      <div class="opts" id="opts${qi}">
-        ${q.opts.map((o,oi)=>`<button class="opt" onclick="answer(${qi},${oi})">${String.fromCharCode(65+oi)}. ${o}</button>`).join('')}
-      </div>
+      <div class="opts" id="opts${qi}">${q.opts.map((o,oi)=>`<button class="opt" onclick="answer(${qi},${oi})">${String.fromCharCode(65+oi)}. ${o}</button>`).join('')}</div>
       <div class="feedback" id="fb${qi}"></div>`;
     body.appendChild(card);
   });
@@ -1038,9 +1077,9 @@ function answer(qi,chosen){
 function showFinal(){
   const fb=document.getElementById('finalBox'),fs=document.getElementById('finalScore'),fst=document.getElementById('finalStars'),fm=document.getElementById('finalMsg');
   fs.textContent=`${correct} / ${QS.length}`;
-  if(correct===QS.length){fs.className='final-score perfect';fst.textContent='⭐⭐⭐';fm.textContent='PERFECT SCORE!\nData Scientist in the Making!\nYou mastered the full pipeline! 🚢';}
-  else if(correct>=12){fs.className='final-score great';fst.textContent='⭐⭐';fm.textContent='EXCELLENT WORK!\nYou can load, clean & analyze data!\nReady for ML!';}
-  else{fs.className='final-score okish';fst.textContent='⭐';fm.textContent='GOOD START!\nReview the Titanic walkthrough\nand try the interactives again!';}
+  if(correct===QS.length){fs.className='final-score perfect';fst.textContent='⭐⭐⭐';fm.textContent='PERFECT SCORE!\nYou mastered both algorithms!\nReady for Decision Trees & Random Forests! 🌳';}
+  else if(correct>=12){fs.className='final-score great';fst.textContent='⭐⭐';fm.textContent='EXCELLENT WORK!\nYou understand Linear & Logistic Regression!\nReview the missed ones and you\'re solid!';}
+  else{fs.className='final-score okish';fst.textContent='⭐';fm.textContent='GOOD START!\nReview the sigmoid function and\nthe difference between regression & classification!';}
   fb.classList.add('show');
 }
 buildQuiz();
