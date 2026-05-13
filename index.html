@@ -3,15 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Data Science Basics — From Raw Data to Insights (Titanic Dataset)</title>
+<title>Decision Trees & KNN — The Visual Algorithms</title>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --data-blue:#3b82f6;--data-sky:#0ea5e9;
-  --load-orange:#f97316;--load-amber:#f59e0b;
-  --clean-green:#10b981;--clean-teal:#14b8a6;
-  --analyze-purple:#8b5cf6;--analyze-pink:#ec4899;
-  --viz-rose:#f43f5e;
+  --dt-green:#22c55e;--dt-lime:#86efac;
+  --knn-purple:#a855f7;--knn-indigo:#818cf8;
+  --sig-purple:#8b5cf6;--sig-pink:#ec4899;
+  --good-green:#10b981;--good-teal:#14b8a6;
+  --err-rose:#f43f5e;--err-red:#ef4444;
+  --warn-amber:#f59e0b;
   --bg:#0f1117;--bg2:#161b27;--text:#e8eaf0;--muted:#8892a4;
   --card:rgba(255,255,255,0.04);--radius:16px;
 }
@@ -20,101 +21,77 @@ html{scroll-behavior:smooth;}
 body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;}
 
 .hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px;
-  background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(59,130,246,0.18) 0%,transparent 70%),
-             radial-gradient(ellipse 50% 40% at 80% 90%,rgba(16,185,129,0.12) 0%,transparent 60%),var(--bg);
+  background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(34,197,94,0.18) 0%,transparent 70%),
+             radial-gradient(ellipse 50% 40% at 20% 80%,rgba(168,85,247,0.12) 0%,transparent 60%),
+             radial-gradient(ellipse 40% 30% at 80% 70%,rgba(129,140,248,0.1) 0%,transparent 50%),var(--bg);
   position:relative;overflow:hidden;}
-.hero-badge{font-family:'Fira Code',monospace;font-size:12px;color:var(--data-blue);background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);padding:6px 16px;border-radius:50px;letter-spacing:2px;margin-bottom:24px;display:inline-block;}
-.hero h1{font-family:'Fredoka One',cursive;font-size:clamp(2.2rem,6vw,4.5rem);line-height:1.05;
-  background:linear-gradient(135deg,#fff 15%,var(--data-blue) 30%,var(--load-orange) 50%,var(--clean-green) 70%,var(--analyze-purple) 85%);
+.hero-badge{font-family:'Fira Code',monospace;font-size:12px;color:var(--dt-green);background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);padding:6px 16px;border-radius:50px;letter-spacing:2px;margin-bottom:24px;display:inline-block;}
+.hero h1{font-family:'Fredoka One',cursive;font-size:clamp(2.2rem,6vw,4.8rem);line-height:1.05;
+  background:linear-gradient(135deg,#fff 15%,var(--dt-green) 40%,var(--knn-purple) 70%,var(--knn-indigo) 90%);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px;}
-.hero p{font-size:20px;color:var(--muted);max-width:720px;line-height:1.7;margin-bottom:36px;}
+.hero p{font-size:20px;color:var(--muted);max-width:740px;line-height:1.7;margin-bottom:36px;}
 .topic-pills{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:900px;}
 .pill{font-family:'Fira Code',monospace;font-size:13px;padding:8px 18px;border-radius:50px;font-weight:500;border:1px solid;}
-.pill-data{color:var(--data-blue);border-color:rgba(59,130,246,0.5);background:rgba(59,130,246,0.1);}
-.pill-load{color:var(--load-orange);border-color:rgba(249,115,22,0.5);background:rgba(249,115,22,0.1);}
-.pill-clean{color:var(--clean-green);border-color:rgba(16,185,129,0.5);background:rgba(16,185,129,0.1);}
-.pill-analyze{color:var(--analyze-purple);border-color:rgba(139,92,246,0.5);background:rgba(139,92,246,0.1);}
-.pill-viz{color:var(--viz-rose);border-color:rgba(244,63,94,0.5);background:rgba(244,63,94,0.1);}
+.pill-dt{color:var(--dt-green);border-color:rgba(34,197,94,0.5);background:rgba(34,197,94,0.1);}
+.pill-knn{color:var(--knn-purple);border-color:rgba(168,85,247,0.5);background:rgba(168,85,247,0.1);}
+.pill-sig{color:var(--sig-purple);border-color:rgba(139,92,246,0.5);background:rgba(139,92,246,0.1);}
+.pill-good{color:var(--good-green);border-color:rgba(16,185,129,0.5);background:rgba(16,185,129,0.1);}
 .float-code{position:absolute;font-family:'Fira Code',monospace;font-size:11px;color:rgba(255,255,255,0.05);pointer-events:none;user-select:none;white-space:nowrap;}
 .wrapper{max-width:920px;margin:0 auto;padding:0 20px 100px;}
 
 .section-divider{display:flex;align-items:center;gap:14px;margin:70px 0 28px;}
 .section-divider .label{font-family:'Fredoka One',cursive;font-size:26px;white-space:nowrap;}
 .section-divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--accent,rgba(255,255,255,0.1)),transparent);}
-.div-data .label{color:var(--data-blue);}.div-data{--accent:rgba(59,130,246,0.4);}
-.div-load .label{color:var(--load-orange);}.div-load{--accent:rgba(249,115,22,0.4);}
-.div-clean .label{color:var(--clean-green);}.div-clean{--accent:rgba(16,185,129,0.4);}
-.div-analyze .label{color:var(--analyze-purple);}.div-analyze{--accent:rgba(139,92,246,0.4);}
-.div-viz .label{color:var(--viz-rose);}.div-viz{--accent:rgba(244,63,94,0.4);}
+.div-dt .label{color:var(--dt-green);}.div-dt{--accent:rgba(34,197,94,0.4);}
+.div-knn .label{color:var(--knn-purple);}.div-knn{--accent:rgba(168,85,247,0.4);}
+.div-cmp .label{color:var(--good-green);}.div-cmp{--accent:rgba(16,185,129,0.4);}
 .div-quiz .label{color:#f472b6;}.div-quiz{--accent:rgba(244,114,182,0.4);}
 
 .card{background:var(--card);border:1px solid rgba(255,255,255,0.07);border-radius:var(--radius);padding:28px 32px;margin-bottom:20px;position:relative;overflow:hidden;}
 .card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--stripe,rgba(255,255,255,0.15)),transparent);}
-.card-data::before{--stripe:rgba(59,130,246,0.6);}
-.card-load::before{--stripe:rgba(249,115,22,0.6);}
-.card-clean::before{--stripe:rgba(16,185,129,0.6);}
-.card-analyze::before{--stripe:rgba(139,92,246,0.6);}
-.card-viz::before{--stripe:rgba(244,63,94,0.6);}
+.card-dt::before{--stripe:rgba(34,197,94,0.6);}
+.card-knn::before{--stripe:rgba(168,85,247,0.6);}
+.card-cmp::before{--stripe:rgba(16,185,129,0.6);}
 .card h3{font-family:'Fredoka One',cursive;font-size:20px;margin-bottom:12px;}
-.card-data h3{color:var(--data-blue);}
-.card-load h3{color:var(--load-orange);}
-.card-clean h3{color:var(--clean-green);}
-.card-analyze h3{color:var(--analyze-purple);}
-.card-viz h3{color:var(--viz-rose);}
+.card-dt h3{color:var(--dt-green);}
+.card-knn h3{color:var(--knn-purple);}
+.card-cmp h3{color:var(--good-green);}
 .card p,.card li{font-size:17px;line-height:1.75;color:rgba(255,255,255,0.72);}
 .card strong{color:#fff;}
-.tip-box{background:rgba(59,130,246,0.06);border-left:3px solid var(--data-blue);border-radius:8px;padding:13px 16px;margin-top:16px;font-size:16px;color:rgba(255,255,255,0.65);}
-.tip-box-load{background:rgba(249,115,22,0.06);border-left-color:var(--load-orange);}
-.tip-box-clean{background:rgba(16,185,129,0.06);border-left-color:var(--clean-green);}
-.tip-box-analyze{background:rgba(139,92,246,0.06);border-left-color:var(--analyze-purple);}
-.tip-box-viz{background:rgba(244,63,94,0.06);border-left-color:var(--viz-rose);}
-.code-line{font-family:'Fira Code',monospace;background:#0a0f1a;border:1px solid rgba(255,255,255,0.1);padding:14px 18px;border-radius:10px;font-size:15px;color:#7ee787;margin:12px 0;white-space:pre-wrap;line-height:1.6;}
-.output-console{background:#000;border:2px solid rgba(126,231,135,0.3);border-radius:10px;padding:16px;font-family:'Fira Code',monospace;color:#7ee787;font-size:13px;min-height:60px;margin-top:12px;line-height:1.8;overflow-x:auto;}
+.tip-box{background:rgba(34,197,94,0.06);border-left:3px solid var(--dt-green);border-radius:8px;padding:13px 16px;margin-top:16px;font-size:16px;color:rgba(255,255,255,0.65);}
+.tip-box-knn{background:rgba(168,85,247,0.06);border-left-color:var(--knn-purple);}
+.tip-box-cmp{background:rgba(16,185,129,0.06);border-left-color:var(--good-green);}
+.tip-box-warn{background:rgba(245,158,11,0.06);border-left-color:var(--warn-amber);}
+.code-line{font-family:'Fira Code',monospace;background:#0a0f1a;border:1px solid rgba(255,255,255,0.1);padding:14px 18px;border-radius:10px;font-size:14px;color:#7ee787;margin:12px 0;white-space:pre-wrap;line-height:1.6;overflow-x:auto;}
+.output-console{background:#000;border:2px solid rgba(126,231,135,0.3);border-radius:10px;padding:16px;font-family:'Fira Code',monospace;color:#7ee787;font-size:13px;min-height:60px;margin-top:12px;line-height:1.8;overflow-x:auto;white-space:pre-wrap;}
 
 .demo-box{background:#0a0f1a;border-radius:12px;padding:24px;margin:20px 0;border:2px solid;}
-.box-data{border-color:rgba(59,130,246,0.3);}
-.box-load{border-color:rgba(249,115,22,0.3);}
-.box-clean{border-color:rgba(16,185,129,0.3);}
-.box-analyze{border-color:rgba(139,92,246,0.3);}
+.box-dt{border-color:rgba(34,197,94,0.3);}
+.box-knn{border-color:rgba(168,85,247,0.3);}
 .box-title{font-family:'Fredoka One',cursive;font-size:18px;text-align:center;margin-bottom:20px;}
-.box-data .box-title{color:var(--data-blue);}
-.box-load .box-title{color:var(--load-orange);}
-.box-clean .box-title{color:var(--clean-green);}
-.box-analyze .box-title{color:var(--analyze-purple);}
-.btn{padding:12px 32px;border:none;border-radius:50px;font-family:'Nunito',sans-serif;font-size:16px;font-weight:700;cursor:pointer;transition:all 0.3s;margin:8px 4px;}
-.btn-data{background:linear-gradient(135deg,var(--data-blue),var(--data-sky));color:white;}
-.btn-load{background:linear-gradient(135deg,var(--load-orange),var(--load-amber));color:#000;}
-.btn-clean{background:linear-gradient(135deg,var(--clean-green),var(--clean-teal));color:#000;}
-.btn-analyze{background:linear-gradient(135deg,var(--analyze-purple),var(--analyze-pink));color:white;}
+.box-dt .box-title{color:var(--dt-green);}
+.box-knn .box-title{color:var(--knn-purple);}
+.btn{padding:12px 28px;border:none;border-radius:50px;font-family:'Nunito',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all 0.3s;margin:6px 4px;}
+.btn-dt{background:linear-gradient(135deg,var(--dt-green),var(--good-teal));color:#000;}
+.btn-knn{background:linear-gradient(135deg,var(--knn-purple),var(--knn-indigo));color:white;}
 .btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,0.3);}
 .result-box{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:20px;margin-top:16px;}
 
-/* ── DATA TABLE ── */
-.data-table{width:100%;border-collapse:separate;border-spacing:0;margin:16px 0;border-radius:10px;overflow:hidden;font-size:13px;}
-.data-table th{background:rgba(59,130,246,0.15);color:var(--data-blue);font-weight:700;padding:10px 12px;text-align:left;font-family:'Fira Code',monospace;font-size:12px;border-bottom:2px solid rgba(59,130,246,0.3);}
-.data-table td{padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);}
-.data-table tr:hover td{background:rgba(255,255,255,0.03);}
-.data-table .missing{color:#f85149;font-style:italic;background:rgba(248,81,73,0.08);border-radius:4px;padding:2px 6px;}
-.data-table .fixed{color:#3fb950;font-weight:600;background:rgba(57,185,80,0.08);border-radius:4px;padding:2px 6px;}
-.data-table th.th-load{background:rgba(249,115,22,0.15);color:var(--load-orange);border-bottom-color:rgba(249,115,22,0.3);}
-.data-table th.th-clean{background:rgba(16,185,129,0.15);color:var(--clean-green);border-bottom-color:rgba(16,185,129,0.3);}
-.data-table th.th-analyze{background:rgba(139,92,246,0.15);color:var(--analyze-purple);border-bottom-color:rgba(139,92,246,0.3);}
-
-.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin:20px 0;}
-.concept-card{background:rgba(255,255,255,0.03);border:2px solid;border-radius:12px;padding:20px;text-align:center;transition:all 0.3s;}
-.concept-card:hover{transform:translateY(-3px);box-shadow:0 8px 25px rgba(0,0,0,0.3);}
-
 .formula-box{background:rgba(0,0,0,0.35);border:2px solid;border-radius:14px;padding:24px;text-align:center;margin:20px 0;}
-.formula-box .formula{font-family:'Fira Code',monospace;font-size:clamp(16px,3.5vw,22px);letter-spacing:1px;margin:12px 0;}
+.formula-box.f-dt{border-color:rgba(34,197,94,0.3);}
+.formula-box.f-knn{border-color:rgba(168,85,247,0.3);}
+.formula-box .formula{font-family:'Fira Code',monospace;font-size:clamp(16px,3.5vw,22px);letter-spacing:1px;margin:12px 0;color:#fff;}
+.formula-box .formula-label{font-family:'Fredoka One',cursive;font-size:14px;}
+.formula-box .formula-explain{font-size:13px;color:var(--muted);margin-top:10px;line-height:1.7;}
 
-/* ── KAGGLE BADGE ── */
-.kaggle-badge{display:inline-flex;align-items:center;gap:10px;background:rgba(32,191,255,0.08);border:2px solid rgba(32,191,255,0.25);border-radius:14px;padding:16px 24px;margin:16px 0;}
-.kaggle-badge .kb-icon{font-size:32px;}
-.kaggle-badge .kb-text{text-align:left;}
-.kaggle-badge .kb-title{font-family:'Fredoka One',cursive;font-size:16px;color:#20bfff;}
-.kaggle-badge .kb-sub{font-size:13px;color:var(--muted);}
+.slider-row{display:flex;align-items:center;gap:12px;margin:14px 0;flex-wrap:wrap;}
+.slider-row label{font-family:'Fira Code',monospace;font-size:13px;color:var(--muted);min-width:90px;}
+.slider-row input[type="range"]{flex:1;min-width:180px;}
+.slider-row input[type="range"].sl-dt{accent-color:var(--dt-green);}
+.slider-row input[type="range"].sl-knn{accent-color:var(--knn-purple);}
+.slider-row .val{font-family:'Fira Code',monospace;font-size:14px;color:#fff;background:rgba(255,255,255,0.06);padding:4px 10px;border-radius:6px;min-width:60px;text-align:center;}
 
-/* ── QUIZ ── */
+/* QUIZ */
 .quiz-wrap{background:var(--card);border:1px solid rgba(244,114,182,0.2);border-radius:20px;padding:36px 32px;margin-top:10px;}
 .quiz-header{text-align:center;margin-bottom:32px;}
 .quiz-header h2{font-family:'Fredoka One',cursive;font-size:2rem;color:#f472b6;margin-bottom:8px;}
@@ -138,748 +115,633 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);over
 .feedback.ok{color:#3fb950;}.feedback.bad{color:#f85149;}
 .final-box{display:none;text-align:center;padding:40px 20px;}.final-box.show{display:block;}
 .final-score{font-family:'Fredoka One',cursive;font-size:clamp(3rem,10vw,5.5rem);margin-bottom:8px;}
-.final-score.perfect{color:var(--clean-green);filter:drop-shadow(0 0 20px rgba(16,185,129,0.5));}
-.final-score.great{color:var(--analyze-purple);filter:drop-shadow(0 0 20px rgba(139,92,246,0.5));}
-.final-score.okish{color:var(--data-blue);}
+.final-score.perfect{color:var(--good-green);filter:drop-shadow(0 0 20px rgba(16,185,129,0.5));}
+.final-score.great{color:var(--knn-purple);filter:drop-shadow(0 0 20px rgba(168,85,247,0.5));}
+.final-score.okish{color:var(--dt-green);}
 .final-stars{font-size:32px;letter-spacing:8px;margin:12px 0;}
 .final-msg{font-family:'Fira Code',monospace;font-size:13px;color:var(--muted);letter-spacing:1px;line-height:2.2;white-space:pre-line;margin-bottom:24px;}
 @media(max-width:600px){.card{padding:20px 18px;}.quiz-wrap{padding:24px 16px;}}
+
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin:20px 0;}
+.concept-card{background:rgba(255,255,255,0.03);border:2px solid;border-radius:12px;padding:20px;text-align:center;transition:all 0.3s;}
+.concept-card:hover{transform:translateY(-3px);box-shadow:0 8px 25px rgba(0,0,0,0.3);}
+.flow-pipe{display:flex;align-items:center;gap:0;margin:20px 0;flex-wrap:wrap;justify-content:center;}
+.flow-step{padding:10px 16px;font-family:'Fredoka One',cursive;font-size:13px;text-align:center;min-width:80px;}
+.flow-arrow{font-size:18px;color:var(--muted);padding:0 2px;}
+.svg-wrap{text-align:center;margin:20px 0;background:rgba(0,0,0,0.25);border-radius:12px;padding:18px;}
+.svg-wrap svg{width:100%;max-width:560px;height:auto;}
+
+/* K selector buttons */
+.k-selector{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:14px 0;}
+.k-btn{padding:10px 18px;border-radius:10px;border:2px solid rgba(168,85,247,0.3);background:rgba(168,85,247,0.05);color:var(--muted);font-family:'Fira Code',monospace;font-size:14px;cursor:pointer;transition:all 0.2s;}
+.k-btn:hover{border-color:var(--knn-purple);color:#fff;}
+.k-btn.active{border-color:var(--knn-purple);background:rgba(168,85,247,0.2);color:var(--knn-purple);font-weight:700;}
+
+/* depth badge */
+.depth-badge{display:inline-block;font-family:'Fira Code',monospace;font-size:11px;padding:3px 10px;border-radius:50px;margin-left:8px;}
+.db-good{background:rgba(16,185,129,0.15);color:var(--good-green);border:1px solid rgba(16,185,129,0.3);}
+.db-bad{background:rgba(244,63,94,0.15);color:var(--err-rose);border:1px solid rgba(244,63,94,0.3);}
+
+/* node styles for tree */
+.tree-node{display:inline-block;font-family:'Fira Code',monospace;font-size:12px;padding:8px 14px;border-radius:10px;margin:4px;}
+.tn-dt{background:rgba(34,197,94,0.12);border:2px solid rgba(34,197,94,0.4);color:var(--dt-green);}
+.tn-leaf-yes{background:rgba(16,185,129,0.12);border:2px solid rgba(16,185,129,0.4);color:var(--good-green);}
+.tn-leaf-no{background:rgba(244,63,94,0.12);border:2px solid rgba(244,63,94,0.4);color:var(--err-rose);}
 </style>
 </head>
 <body>
 
-<!-- ╔══════════ HERO ══════════╗ -->
 <div class="hero">
   <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none;">
-    <div class="float-code" style="top:12%;left:4%;">import pandas as pd<br>df = pd.read_csv("titanic.csv")<br>df.head()</div>
-    <div class="float-code" style="top:65%;left:2%;">df.isnull().sum()<br>df.fillna(median)<br>df.drop_duplicates()</div>
-    <div class="float-code" style="top:20%;right:3%;">df.describe()<br>df.groupby("Pclass")<br>df.corr()</div>
-    <div class="float-code" style="top:70%;right:4%;">survived: 342<br>died: 549<br>survival_rate: 38.4%</div>
+    <div class="float-code" style="top:10%;left:3%;">if Age > 30:<br>&nbsp;&nbsp;→ left branch<br>else:<br>&nbsp;&nbsp;→ right branch</div>
+    <div class="float-code" style="top:68%;left:2%;">distance = sqrt((x1-x2)²<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ (y1-y2)²)<br>vote → majority wins!</div>
+    <div class="float-code" style="top:18%;right:3%;">DecisionTreeClassifier()<br>.fit(X_train, y_train)<br>.predict(X_new)</div>
+    <div class="float-code" style="top:72%;right:4%;">KNeighborsClassifier(k=5)<br>.fit(X, y)<br>find 5 nearest, vote!</div>
   </div>
-  <div class="hero-badge">// PHASE 4 · DATA SCIENCE BASICS //</div>
-  <h1>Data Science:<br>From Raw Data<br>to Real Insights</h1>
-  <p>Today we go end-to-end on a REAL Kaggle dataset — the Titanic. You'll learn what data is, how to load it, how to clean it, and how to pull insights that tell a story. One dataset, one lecture, complete pipeline!</p>
+  <div class="hero-badge">// PHASE 7 · THE VISUAL ALGORITHMS //</div>
+  <h1>Decision Trees<br>&amp; KNN:<br>Algorithms You Can Draw!</h1>
+  <p>Last class you mastered Linear &amp; Logistic Regression. Now meet two algorithms that feel like pure intuition — Decision Trees ask yes/no questions like a flowchart, while KNN simply finds "who are your nearest neighbours?" Both are powerful, explainable, and fun!</p>
   <div class="topic-pills">
-    <div class="pill pill-data">📊 What is a Dataset?</div>
-    <div class="pill pill-load">📂 Loading CSV &amp; Excel</div>
-    <div class="pill pill-clean">🧹 Cleaning &amp; Preprocessing</div>
-    <div class="pill pill-analyze">🔍 Analysis Techniques</div>
-    <div class="pill pill-viz">🚢 Titanic Case Study</div>
+    <div class="pill pill-dt">🌳 Decision Trees</div>
+    <div class="pill pill-knn">🔮 K-Nearest Neighbors</div>
+    <div class="pill pill-sig">⚖️ Gini Impurity</div>
+    <div class="pill pill-good">📏 Distance Metrics</div>
   </div>
 </div>
 
 <div class="wrapper">
 
-<!-- ╔══════════ OUR DATASET ══════════╗ -->
-<div class="section-divider div-data">
-  <div class="label">🚢 Meet Our Dataset</div>
+<!-- ╔══════════ RECAP ══════════╗ -->
+<div class="section-divider div-cmp">
+  <div class="label">📚 Quick Recap</div>
 </div>
 
-<div class="card card-data">
-  <h3>Today's Mission: The Titanic Dataset</h3>
-  <p>We'll use one of the most famous beginner datasets in all of data science — the <strong>Titanic passenger list from Kaggle</strong>. It has everything: numbers, text, missing values, and a powerful question to answer.</p>
-
-  <div class="kaggle-badge">
-    <div class="kb-icon">🏆</div>
-    <div class="kb-text">
-      <div class="kb-title">Kaggle: Titanic — Machine Learning from Disaster</div>
-      <div class="kb-sub">891 passengers · 12 columns · The most famous beginner dataset in ML</div>
+<div class="card card-cmp">
+  <h3>The ML Toolkit So Far</h3>
+  <p>You already know <strong>two</strong> algorithms. Let's add two more to your arsenal:</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0;">
+    <div style="background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.2);border-radius:10px;padding:16px;">
+      <div style="font-family:'Fredoka One',cursive;color:#3b82f6;margin-bottom:6px;">✅ Phase 6 (Done)</div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.8;">📈 Linear Regression → numbers<br>📊 Logistic Regression → categories</div>
+    </div>
+    <div style="background:rgba(34,197,94,0.06);border:2px solid rgba(34,197,94,0.3);border-radius:10px;padding:16px;">
+      <div style="font-family:'Fredoka One',cursive;color:var(--dt-green);margin-bottom:6px;">🔥 Phase 7 (Today)</div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.8;">🌳 Decision Trees → ask questions<br>🔮 KNN → copy your neighbors</div>
     </div>
   </div>
-
-  <div style="background:rgba(59,130,246,0.08);border:2px solid rgba(59,130,246,0.25);border-radius:14px;padding:24px;margin:16px 0;text-align:center;">
-    <div style="font-family:'Fredoka One',cursive;font-size:22px;color:var(--data-blue);margin-bottom:8px;">❓ The Big Question</div>
-    <div style="font-size:18px;color:#fff;line-height:1.6;">What kind of passenger was most likely to <strong style="color:var(--clean-green);">survive</strong> the Titanic?</div>
-    <div style="font-size:14px;color:var(--muted);margin-top:8px;">Age? Gender? Ticket class? Let's find out using data science!</div>
-  </div>
+  <div class="tip-box tip-box-cmp">🎯 <strong>Why these two?</strong> They are the most <em>explainable</em> ML algorithms. You can literally draw a Decision Tree on a whiteboard and explain it to anyone — no maths degree needed!</div>
 </div>
 
 
-<!-- ╔══════════ WHAT IS A DATASET? ══════════╗ -->
-<div class="section-divider div-data">
-  <div class="label">📊 What is a Dataset?</div>
+<!-- ╔══════════ DECISION TREES ══════════╗ -->
+<div class="section-divider div-dt">
+  <div class="label">🌳 Decision Trees</div>
 </div>
 
-<div class="card card-data">
-  <h3>Think of it Like a Spreadsheet</h3>
-  <p>A <strong>dataset</strong> is an organized collection of data stored in <strong>rows</strong> and <strong>columns</strong> — exactly like a table or spreadsheet you'd see in Google Sheets or Excel.</p>
+<div class="card card-dt">
+  <h3>The Big Idea — It's Just 20 Questions!</h3>
+  <p>You've played the "20 Questions" game, right? You think of an animal and your friend asks yes/no questions to guess it. That's <strong>exactly</strong> how a Decision Tree works!</p>
+  <p style="margin-top:12px;font-size:18px;text-align:center;color:#fff;background:rgba(34,197,94,0.08);padding:18px;border-radius:10px;border:1px solid rgba(34,197,94,0.25);">
+    "Keep asking <strong style="color:var(--dt-green);">yes/no questions</strong> about the features until you can make a prediction with confidence."
+  </p>
 
-  <div style="display:grid;gap:12px;margin:20px 0;">
-    <div style="background:rgba(59,130,246,0.06);border:2px solid rgba(59,130,246,0.2);border-radius:10px;padding:16px;display:flex;align-items:center;gap:14px;">
-      <div style="font-size:28px;min-width:36px;text-align:center;">📄</div>
-      <div><strong style="color:var(--data-blue);">Each ROW</strong> = one <strong>record</strong> (one person, one transaction, one event). In Titanic: each row = one passenger.</div>
+  <!-- Tree SVG -->
+  <div class="svg-wrap">
+    <svg viewBox="0 0 560 340" xmlns="http://www.w3.org/2000/svg">
+      <!-- Connectors -->
+      <line x1="280" y1="60" x2="150" y2="130" stroke="#444" stroke-width="1.5"/>
+      <line x1="280" y1="60" x2="410" y2="130" stroke="#444" stroke-width="1.5"/>
+      <line x1="150" y1="170" x2="80" y2="240" stroke="#444" stroke-width="1.5"/>
+      <line x1="150" y1="170" x2="220" y2="240" stroke="#444" stroke-width="1.5"/>
+      <line x1="410" y1="170" x2="340" y2="240" stroke="#444" stroke-width="1.5"/>
+      <line x1="410" y1="170" x2="480" y2="240" stroke="#444" stroke-width="1.5"/>
+
+      <!-- Edge labels -->
+      <text x="200" y="108" fill="#8892a4" font-family="Fira Code" font-size="11" text-anchor="middle">Yes ≤ 30</text>
+      <text x="360" y="108" fill="#8892a4" font-family="Fira Code" font-size="11" text-anchor="middle">No &gt; 30</text>
+      <text x="103" y="215" fill="#8892a4" font-family="Fira Code" font-size="10" text-anchor="middle">Yes ≤ 2</text>
+      <text x="197" y="215" fill="#8892a4" font-family="Fira Code" font-size="10" text-anchor="middle">No &gt; 2</text>
+      <text x="363" y="215" fill="#8892a4" font-family="Fira Code" font-size="10" text-anchor="middle">Yes</text>
+      <text x="453" y="215" fill="#8892a4" font-family="Fira Code" font-size="10" text-anchor="middle">No</text>
+
+      <!-- Root node -->
+      <rect x="195" y="22" width="170" height="40" rx="10" fill="rgba(34,197,94,0.15)" stroke="rgba(34,197,94,0.5)" stroke-width="2"/>
+      <text x="280" y="36" text-anchor="middle" fill="#22c55e" font-family="Fredoka One" font-size="13">ROOT NODE</text>
+      <text x="280" y="52" text-anchor="middle" fill="#e8eaf0" font-family="Fira Code" font-size="12">Age ≤ 30?</text>
+
+      <!-- Level 2 -->
+      <rect x="70" y="130" width="160" height="40" rx="10" fill="rgba(34,197,94,0.10)" stroke="rgba(34,197,94,0.35)" stroke-width="1.5"/>
+      <text x="150" y="144" text-anchor="middle" fill="#22c55e" font-family="Fira Code" font-size="11">DECISION NODE</text>
+      <text x="150" y="160" text-anchor="middle" fill="#e8eaf0" font-family="Fira Code" font-size="12">Debt ≤ 2k?</text>
+
+      <rect x="330" y="130" width="160" height="40" rx="10" fill="rgba(34,197,94,0.10)" stroke="rgba(34,197,94,0.35)" stroke-width="1.5"/>
+      <text x="410" y="144" text-anchor="middle" fill="#22c55e" font-family="Fira Code" font-size="11">DECISION NODE</text>
+      <text x="410" y="160" text-anchor="middle" fill="#e8eaf0" font-family="Fira Code" font-size="12">Employed?</text>
+
+      <!-- Leaves -->
+      <rect x="35" y="240" width="90" height="36" rx="9" fill="rgba(16,185,129,0.15)" stroke="rgba(16,185,129,0.5)" stroke-width="2"/>
+      <text x="80" y="256" text-anchor="middle" fill="#10b981" font-family="Fredoka One" font-size="12">✅ APPROVE</text>
+      <text x="80" y="269" text-anchor="middle" fill="#8892a4" font-family="Fira Code" font-size="10">young + low debt</text>
+
+      <rect x="175" y="240" width="90" height="36" rx="9" fill="rgba(244,63,94,0.12)" stroke="rgba(244,63,94,0.4)" stroke-width="2"/>
+      <text x="220" y="256" text-anchor="middle" fill="#f43f5e" font-family="Fredoka One" font-size="12">❌ REJECT</text>
+      <text x="220" y="269" text-anchor="middle" fill="#8892a4" font-family="Fira Code" font-size="10">young + high debt</text>
+
+      <rect x="305" y="240" width="70" height="36" rx="9" fill="rgba(16,185,129,0.15)" stroke="rgba(16,185,129,0.5)" stroke-width="2"/>
+      <text x="340" y="256" text-anchor="middle" fill="#10b981" font-family="Fredoka One" font-size="12">✅ APPROVE</text>
+      <text x="340" y="269" text-anchor="middle" fill="#8892a4" font-family="Fira Code" font-size="10">older + job</text>
+
+      <rect x="435" y="240" width="70" height="36" rx="9" fill="rgba(244,63,94,0.12)" stroke="rgba(244,63,94,0.4)" stroke-width="2"/>
+      <text x="470" y="256" text-anchor="middle" fill="#f43f5e" font-family="Fredoka One" font-size="12">❌ REJECT</text>
+      <text x="470" y="269" text-anchor="middle" fill="#8892a4" font-family="Fira Code" font-size="10">older + no job</text>
+
+      <!-- LEAF label -->
+      <text x="80" y="296" text-anchor="middle" fill="#8892a4" font-family="Fira Code" font-size="9">LEAF NODE</text>
+      <text x="220" y="296" text-anchor="middle" fill="#8892a4" font-family="Fira Code" font-size="9">LEAF NODE</text>
+      <text x="340" y="296" text-anchor="middle" fill="#8892a4" font-family="Fira Code" font-size="9">LEAF NODE</text>
+      <text x="470" y="296" text-anchor="middle" fill="#8892a4" font-family="Fira Code" font-size="9">LEAF NODE</text>
+
+      <!-- Legend -->
+      <text x="10" y="328" fill="#8892a4" font-family="Fira Code" font-size="10">Loan Approval Decision Tree</text>
+    </svg>
+  </div>
+
+  <div class="tip-box">🌳 <strong>Tree Vocabulary:</strong> <strong style="color:#fff;">Root Node</strong> — the very first question (top). <strong style="color:#fff;">Decision Nodes</strong> — internal questions. <strong style="color:#fff;">Leaf Nodes</strong> — the final answers (no more questions). <strong style="color:#fff;">Branches</strong> — the Yes/No paths.</div>
+</div>
+
+<div class="card card-dt">
+  <h3>How Does It Decide Which Question to Ask?</h3>
+  <p>The tree doesn't pick questions randomly — it always picks the question that <strong style="color:var(--dt-green);">splits the data most cleanly</strong>. The magic metric is called <strong>Gini Impurity</strong>.</p>
+
+  <div class="formula-box f-dt">
+    <div class="formula-label" style="color:var(--dt-green);">Gini Impurity</div>
+    <div class="formula">Gini = 1 − Σ (pᵢ)²</div>
+    <div class="formula-explain">pᵢ = proportion of class i in the group<br>Gini = 0 → PURE (all same class — perfect!)<br>Gini = 0.5 → maximum mess (50/50 split)</div>
+  </div>
+
+  <!-- Gini visual examples -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:18px 0;">
+    <div style="background:rgba(16,185,129,0.06);border:2px solid rgba(16,185,129,0.3);border-radius:12px;padding:16px;text-align:center;">
+      <div style="font-size:24px;">🟢🟢🟢🟢🟢</div>
+      <div style="font-family:'Fredoka One',cursive;color:var(--good-green);font-size:15px;margin-top:8px;">Gini = 0.0</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px;">100% one class<br>PERFECT SPLIT ✅</div>
     </div>
-    <div style="background:rgba(249,115,22,0.06);border:2px solid rgba(249,115,22,0.2);border-radius:10px;padding:16px;display:flex;align-items:center;gap:14px;">
-      <div style="font-size:28px;min-width:36px;text-align:center;">📊</div>
-      <div><strong style="color:var(--load-orange);">Each COLUMN</strong> = one <strong>feature</strong> (one property or attribute). In Titanic: Name, Age, Gender, Ticket Class, etc.</div>
+    <div style="background:rgba(245,158,11,0.06);border:2px solid rgba(245,158,11,0.3);border-radius:12px;padding:16px;text-align:center;">
+      <div style="font-size:24px;">🟢🟢🟢🔴🔴</div>
+      <div style="font-family:'Fredoka One',cursive;color:var(--warn-amber);font-size:15px;margin-top:8px;">Gini = 0.48</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px;">60% / 40% mix<br>Mixed — OK</div>
     </div>
-    <div style="background:rgba(16,185,129,0.06);border:2px solid rgba(16,185,129,0.2);border-radius:10px;padding:16px;display:flex;align-items:center;gap:14px;">
-      <div style="font-size:28px;min-width:36px;text-align:center;">🎯</div>
-      <div><strong style="color:var(--clean-green);">One special column</strong> = the <strong>target/label</strong> — what you're trying to predict. In Titanic: "Survived" (0 = No, 1 = Yes).</div>
+    <div style="background:rgba(244,63,94,0.06);border:2px solid rgba(244,63,94,0.3);border-radius:12px;padding:16px;text-align:center;">
+      <div style="font-size:24px;">🟢🟢🔴🔴🔴</div>
+      <div style="font-family:'Fredoka One',cursive;color:var(--err-rose);font-size:15px;margin-top:8px;">Gini = 0.50</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px;">50% / 50% split<br>MAX MESS ❌</div>
     </div>
   </div>
 
+  <p>At each node, the tree tries <strong>every possible question</strong> on every feature and picks the one with the <strong style="color:var(--dt-green);">lowest Gini impurity</strong> after the split. This continues recursively until leaves are pure or a stopping rule kicks in.</p>
+  <div class="tip-box">🔢 <strong>Gini worked example:</strong> Group has 4 cats and 1 dog → p(cat)=0.8, p(dog)=0.2<br>Gini = 1 − (0.8² + 0.2²) = 1 − (0.64 + 0.04) = <strong style="color:#fff;">0.32</strong> — fairly pure!</div>
+</div>
+
+<div class="card card-dt">
+  <h3>sklearn Code — Titanic with Decision Tree</h3>
+  <div class="code-line">import pandas as pd
+from sklearn.tree import DecisionTreeClassifier, export_text
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+# Load Titanic data
+df = pd.read_csv('titanic_clean.csv')
+X = df[['Sex', 'Pclass', 'Age', 'Fare']]
+y = df['Survived']
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# ──────────────────────────────────────────
+# The sklearn 3-step pattern (same as always!)
+# ──────────────────────────────────────────
+model = DecisionTreeClassifier(max_depth=3, random_state=42)
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+
+print(f"Accuracy: {accuracy_score(y_test, y_pred)*100:.1f}%")
+
+# Print the actual tree — readable!
+print("\n" + export_text(model, feature_names=list(X.columns)))
+
+# Feature importance — how much did each feature help?
+for feat, imp in zip(X.columns, model.feature_importances_):
+    bar = '█' * int(imp * 30)
+    print(f"  {feat:8s} {bar} {imp:.3f}")</div>
+
+  <div class="output-console">Accuracy: 79.3%
+
+|--- Sex <= 0.50
+|   |--- Pclass <= 2.50
+|   |   |--- class: 1 (Survived)
+|   |--- Pclass > 2.50
+|   |   |--- class: 0 (Died)
+|--- Sex > 0.50
+|   |--- Age <= 13.50
+|   |   |--- class: 1 (Survived)
+|   |--- Age > 13.50
+|   |   |--- class: 1 (Survived)
+
+  Sex      ████████████████████ 0.629
+  Pclass   ████████ 0.257
+  Age      ██ 0.082
+  Fare     █ 0.032</div>
+
+  <div class="tip-box">🏆 <strong>Feature Importance:</strong> The tree tells you EXACTLY which features mattered. Sex was responsible for 62.9% of the decision quality — confirms what we saw with Logistic Regression!</div>
+</div>
+
+<div class="card card-dt">
+  <h3>⚠️ Overfitting — The Biggest Danger with Trees</h3>
+  <p>A Decision Tree will keep splitting until it memorises <strong>every single training sample</strong> — including noise and flukes. This is called <strong style="color:var(--err-rose);">overfitting</strong>.</p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0;">
+    <div style="background:rgba(244,63,94,0.07);border:2px solid rgba(244,63,94,0.3);border-radius:12px;padding:18px;">
+      <div style="font-family:'Fredoka One',cursive;color:var(--err-rose);font-size:16px;margin-bottom:10px;">❌ max_depth = None (unlimited)</div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.8;">Training accuracy: <strong style="color:var(--err-rose);">100%</strong><br>Test accuracy: <strong style="color:var(--err-rose);">~71%</strong><br><br>Memorised training data.<br>Fails on new examples.</div>
+    </div>
+    <div style="background:rgba(34,197,94,0.07);border:2px solid rgba(34,197,94,0.3);border-radius:12px;padding:18px;">
+      <div style="font-family:'Fredoka One',cursive;color:var(--dt-green);font-size:16px;margin-bottom:10px;">✅ max_depth = 3 or 4</div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.8;">Training accuracy: <strong style="color:var(--dt-green);">83%</strong><br>Test accuracy: <strong style="color:var(--dt-green);">~79%</strong><br><br>Generalises well.<br>Works on new examples!</div>
+    </div>
+  </div>
+
+  <div class="code-line"># ❌ Don't do this — it memorises everything
+model_overfit = DecisionTreeClassifier()   # no max_depth!
+
+# ✅ Do this — limit the tree depth
+model_good = DecisionTreeClassifier(max_depth=3)
+
+# Other controls you can use:
+#   min_samples_split=10   → need at least 10 samples to split
+#   min_samples_leaf=5     → each leaf must have at least 5 samples
+#   max_features='sqrt'    → only check sqrt(n_features) per split</div>
+
+  <div class="tip-box tip-box-warn">⚠️ <strong>Golden Rule:</strong> If your training accuracy is way higher than your test accuracy, you're overfitting. Add max_depth or min_samples_leaf to tame the tree!</div>
+</div>
+
+<!-- Interactive Decision Tree Demo -->
+<div class="demo-box box-dt">
+  <div class="box-title">🌳 Interactive: Be the Decision Tree!</div>
+  <p style="text-align:center;color:var(--muted);margin-bottom:18px;">Fill in a loan applicant's details and watch the tree decide step-by-step!</p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+    <div>
+      <div style="font-family:'Fira Code',monospace;font-size:12px;color:var(--muted);margin-bottom:8px;">Age</div>
+      <div class="slider-row" style="margin:0;">
+        <input type="range" id="dtAge" min="18" max="65" value="28" class="sl-dt" style="flex:1;">
+        <div class="val" id="dtAgeVal">28</div>
+      </div>
+    </div>
+    <div>
+      <div style="font-family:'Fira Code',monospace;font-size:12px;color:var(--muted);margin-bottom:8px;">Monthly Debt (₹k)</div>
+      <div class="slider-row" style="margin:0;">
+        <input type="range" id="dtDebt" min="0" max="10" step="0.5" value="1.5" class="sl-dt" style="flex:1;">
+        <div class="val" id="dtDebtVal">1.5</div>
+      </div>
+    </div>
+    <div>
+      <div style="font-family:'Fira Code',monospace;font-size:12px;color:var(--muted);margin-bottom:8px;">Employed?</div>
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <button id="dtEmpYes" onclick="setEmp(true)" style="flex:1;padding:8px;border-radius:8px;border:2px solid rgba(34,197,94,0.5);background:rgba(34,197,94,0.15);color:var(--dt-green);font-family:'Fira Code',monospace;font-size:13px;cursor:pointer;">Yes ✅</button>
+        <button id="dtEmpNo" onclick="setEmp(false)" style="flex:1;padding:8px;border-radius:8px;border:2px solid rgba(255,255,255,0.15);background:transparent;color:var(--muted);font-family:'Fira Code',monospace;font-size:13px;cursor:pointer;">No ❌</button>
+      </div>
+    </div>
+    <div style="display:flex;align-items:flex-end;">
+      <button class="btn btn-dt" onclick="runDT()" style="width:100%;margin:0;">🌳 Decide!</button>
+    </div>
+  </div>
+  <div id="dtOutput"></div>
+</div>
+
+
+<!-- ╔══════════ KNN ══════════╗ -->
+<div class="section-divider div-knn">
+  <div class="label">🔮 K-Nearest Neighbors</div>
+</div>
+
+<div class="card card-knn">
+  <h3>The Big Idea — You Are Who Your Neighbours Are!</h3>
+  <p>KNN is arguably the most intuitive ML algorithm ever invented. No training required. The rule is:</p>
+  <p style="margin-top:12px;font-size:18px;text-align:center;color:#fff;background:rgba(168,85,247,0.08);padding:18px;border-radius:10px;border:1px solid rgba(168,85,247,0.25);">
+    "To classify a new point, find its <strong style="color:var(--knn-purple);">K nearest neighbours</strong> and let them vote. Majority wins!"
+  </p>
+
+  <div class="concept-grid" style="margin-top:20px;">
+    <div class="concept-card" style="border-color:rgba(168,85,247,0.4);">
+      <div style="font-size:32px;">📏</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--knn-purple);margin-top:6px;">Step 1: Measure</div>
+      <div style="font-size:13px;color:var(--muted);">Calculate distance from new point to every training point</div>
+    </div>
+    <div class="concept-card" style="border-color:rgba(168,85,247,0.4);">
+      <div style="font-size:32px;">🔍</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--knn-purple);margin-top:6px;">Step 2: Find K</div>
+      <div style="font-size:13px;color:var(--muted);">Pick the K closest points (K is chosen by you)</div>
+    </div>
+    <div class="concept-card" style="border-color:rgba(168,85,247,0.4);">
+      <div style="font-size:32px;">🗳️</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--knn-purple);margin-top:6px;">Step 3: Vote</div>
+      <div style="font-size:13px;color:var(--muted);">Most common class among the K neighbours wins</div>
+    </div>
+  </div>
+
+  <!-- KNN SVG diagram -->
+  <div class="svg-wrap">
+    <svg viewBox="0 0 520 300" xmlns="http://www.w3.org/2000/svg">
+      <!-- Background grid faint -->
+      <line x1="40" y1="270" x2="490" y2="270" stroke="#333" stroke-width="1"/>
+      <line x1="40" y1="270" x2="40" y2="20" stroke="#333" stroke-width="1"/>
+      <text x="265" y="292" text-anchor="middle" fill="#8892a4" font-family="Fira Code" font-size="11">Feature 1 →</text>
+      <text x="18" y="150" text-anchor="middle" fill="#8892a4" font-family="Fira Code" font-size="11" transform="rotate(-90 18 150)">Feature 2 →</text>
+
+      <!-- Class A points (green circles) -->
+      <circle cx="100" cy="90" r="7" fill="#22c55e" opacity="0.85"/>
+      <circle cx="140" cy="110" r="7" fill="#22c55e" opacity="0.85"/>
+      <circle cx="90" cy="140" r="7" fill="#22c55e" opacity="0.85"/>
+      <circle cx="160" cy="75" r="7" fill="#22c55e" opacity="0.85"/>
+      <circle cx="120" cy="160" r="7" fill="#22c55e" opacity="0.85"/>
+      <circle cx="80" cy="60" r="7" fill="#22c55e" opacity="0.85"/>
+
+      <!-- Class B points (purple triangles as circles) -->
+      <circle cx="360" cy="100" r="7" fill="#a855f7" opacity="0.85"/>
+      <circle cx="400" cy="130" r="7" fill="#a855f7" opacity="0.85"/>
+      <circle cx="340" cy="150" r="7" fill="#a855f7" opacity="0.85"/>
+      <circle cx="420" cy="90" r="7" fill="#a855f7" opacity="0.85"/>
+      <circle cx="380" cy="170" r="7" fill="#a855f7" opacity="0.85"/>
+      <circle cx="440" cy="160" r="7" fill="#a855f7" opacity="0.85"/>
+
+      <!-- Grey zone points around new point -->
+      <circle cx="235" cy="140" r="7" fill="#22c55e" opacity="0.6"/>
+      <circle cx="270" cy="105" r="7" fill="#22c55e" opacity="0.6"/>
+      <circle cx="300" cy="155" r="7" fill="#a855f7" opacity="0.6"/>
+
+      <!-- K=3 radius circle around new point -->
+      <circle cx="260" cy="140" r="70" fill="none" stroke="rgba(245,158,11,0.4)" stroke-width="2" stroke-dasharray="6,4"/>
+      <text x="260" y="80" text-anchor="middle" fill="#f59e0b" font-family="Fira Code" font-size="11">K=3 search radius</text>
+
+      <!-- Lines to 3 nearest -->
+      <line x1="260" cy="140" x1="260" y1="140" x2="235" y2="140" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <line x1="260" cy="140" x1="260" y1="140" x2="270" y2="105" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <line x1="260" cy="140" x1="260" y1="140" x2="300" y2="155" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,3"/>
+
+      <!-- New point (star) -->
+      <circle cx="260" cy="140" r="11" fill="#f59e0b" opacity="0.9"/>
+      <text x="260" cy="140" y="144" text-anchor="middle" fill="#000" font-family="Fredoka One" font-size="12">?</text>
+
+      <!-- Vote result -->
+      <rect x="175" y="210" width="170" height="46" rx="10" fill="rgba(34,197,94,0.12)" stroke="rgba(34,197,94,0.4)" stroke-width="2"/>
+      <text x="260" y="227" text-anchor="middle" fill="#22c55e" font-family="Fredoka One" font-size="13">Vote: 2 🟢 vs 1 🟣</text>
+      <text x="260" y="245" text-anchor="middle" fill="#e8eaf0" font-family="Fira Code" font-size="12">→ Classified as Class A!</text>
+
+      <!-- Legend -->
+      <circle cx="50" cy="286" r="5" fill="#22c55e"/>
+      <text x="60" y="290" fill="#8892a4" font-family="Fira Code" font-size="10">Class A</text>
+      <circle cx="100" cy="286" r="5" fill="#a855f7"/>
+      <text x="110" y="290" fill="#8892a4" font-family="Fira Code" font-size="10">Class B</text>
+      <circle cx="152" cy="286" r="5" fill="#f59e0b"/>
+      <text x="162" y="290" fill="#8892a4" font-family="Fira Code" font-size="10">New Point</text>
+    </svg>
+  </div>
+
+  <div class="tip-box tip-box-knn">🔮 <strong>KNN is a "lazy learner":</strong> It does ZERO work during training — it just stores the data! All the work happens at prediction time. This makes training instant but prediction slower for large datasets.</div>
+</div>
+
+<div class="card card-knn">
+  <h3>The Distance Formula</h3>
+  <p>The heart of KNN is measuring <strong>"how close"</strong> two points are. The most common way is <strong style="color:var(--knn-purple);">Euclidean distance</strong> — the straight-line distance you learned in school!</p>
+
+  <div class="formula-box f-knn">
+    <div class="formula-label" style="color:var(--knn-purple);">Euclidean Distance (2 features)</div>
+    <div class="formula">d = √( (x₁−x₂)² + (y₁−y₂)² )</div>
+    <div class="formula-explain">Same as Pythagoras' theorem!<br>Works for any number of features — just add more squared differences inside the √</div>
+  </div>
+
+  <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:18px;margin:14px 0;font-family:'Fira Code',monospace;font-size:13px;color:var(--muted);line-height:2.2;">
+    <span style="color:#fff;font-weight:700;">Example:</span> Point A = (Age=25, Salary=50k), New = (Age=27, Salary=54k)<br>
+    d = √( (25−27)² + (50−54)² )<br>
+    d = √( 4 + 16 ) = √20 = <span style="color:var(--knn-purple);font-weight:700;">4.47</span><br><br>
+    <span style="color:#fff;font-weight:700;">⚠️ Important:</span> If Salary is in thousands and Age in years, salary differences<br>
+    will dominate! Always <span style="color:var(--warn-amber);">scale your features</span> before using KNN.
+  </div>
+
+  <div class="tip-box tip-box-knn">📏 <strong>Other distance options:</strong> Manhattan distance (sum of absolute diffs, good for grid-like data), Minkowski distance (generalises both), Cosine similarity (great for text/NLP). sklearn's KNN lets you pick with <code style="color:var(--knn-purple);">metric=</code> parameter.</div>
+</div>
+
+<div class="card card-knn">
+  <h3>sklearn Code — KNN on Iris Dataset</h3>
+  <div class="code-line">import pandas as pd
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.preprocessing import StandardScaler    # ← IMPORTANT for KNN!
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report
+
+# Classic Iris dataset: predict flower species from petal/sepal measurements
+from sklearn.datasets import load_iris
+iris = load_iris()
+X, y = iris.data, iris.target   # 4 features, 3 classes
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# ── Step 1: SCALE THE FEATURES (crucial for KNN!) ──
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled  = scaler.transform(X_test)   # transform only, not fit!
+
+# ── Step 2: The classic 3-step pattern ──
+model = KNeighborsClassifier(n_neighbors=5)   # K = 5
+model.fit(X_train_scaled, y_train)
+y_pred = model.predict(X_test_scaled)
+
+print(f"Accuracy with K=5: {accuracy_score(y_test, y_pred)*100:.1f}%")
+print()
+
+# Try different values of K
+print("Effect of K on accuracy:")
+for k in [1, 3, 5, 7, 11, 15, 21]:
+    knn = KNeighborsClassifier(n_neighbors=k)
+    knn.fit(X_train_scaled, y_train)
+    acc = accuracy_score(y_test, knn.predict(X_test_scaled))
+    bar = '█' * int(acc * 25)
+    print(f"  K={k:2d}  {bar} {acc*100:.1f}%")</div>
+
+  <div class="output-console">Accuracy with K=5: 100.0%
+
+Effect of K on accuracy:
+  K= 1  ████████████████████████ 96.7%   ← might overfit
+  K= 3  ████████████████████████ 96.7%
+  K= 5  █████████████████████████ 100.0%  ← sweet spot!
+  K= 7  ████████████████████████ 96.7%
+  K=11  ████████████████████████ 96.7%
+  K=15  ███████████████████████ 93.3%
+  K=21  ███████████████████████ 93.3%   ← underfitting slightly</div>
+
+  <div class="tip-box tip-box-knn">🌸 <strong>The Iris dataset</strong> is a classic ML benchmark — 150 flower samples with petal and sepal measurements for 3 species. It's so clean that KNN often hits 96–100% on it. Real-world data is messier!</div>
+</div>
+
+<div class="card card-knn">
+  <h3>Choosing K — The Goldilocks Problem</h3>
+  <p>K is the most important hyperparameter in KNN. Choosing it is a classic <strong>bias-variance tradeoff</strong>:</p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:20px 0;">
+    <div style="background:rgba(244,63,94,0.06);border:2px solid rgba(244,63,94,0.3);border-radius:12px;padding:16px;text-align:center;">
+      <div style="font-family:'Fredoka One',cursive;font-size:26px;color:var(--err-rose);">K = 1</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:8px;line-height:1.7;">Memorises every point.<br><strong style="color:#fff;">Overfitting!</strong><br>Wiggly, unstable boundary.</div>
+    </div>
+    <div style="background:rgba(34,197,94,0.06);border:2px solid rgba(34,197,94,0.4);border-radius:12px;padding:16px;text-align:center;">
+      <div style="font-family:'Fredoka One',cursive;font-size:26px;color:var(--dt-green);">K = 5–11</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:8px;line-height:1.7;">Smooth, generalises well.<br><strong style="color:#fff;">Sweet spot! ✅</strong><br>Stable boundaries.</div>
+    </div>
+    <div style="background:rgba(168,85,247,0.06);border:2px solid rgba(168,85,247,0.3);border-radius:12px;padding:16px;text-align:center;">
+      <div style="font-family:'Fredoka One',cursive;font-size:26px;color:var(--knn-purple);">K = 100+</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:8px;line-height:1.7;">Too smooth — ignores local patterns.<br><strong style="color:#fff;">Underfitting!</strong><br>Flat, boring boundary.</div>
+    </div>
+  </div>
+
+  <p><strong>Rules of thumb when picking K:</strong></p>
+  <ul style="margin:12px 0 0 24px;line-height:2.2;color:rgba(255,255,255,0.7);">
+    <li>Start with <strong style="color:#fff;">K = √n</strong> (square root of training samples) as a baseline</li>
+    <li>Always use an <strong style="color:#fff;">odd K</strong> for binary classification — avoids tie votes</li>
+    <li>Use <strong style="color:#fff;">cross-validation</strong> to find the best K systematically (sklearn's GridSearchCV)</li>
+    <li>Larger datasets usually benefit from larger K values</li>
+  </ul>
+
+  <div class="code-line"># Find the best K automatically using cross-validation
+from sklearn.model_selection import cross_val_score
+import numpy as np
+
+best_k, best_score = 1, 0
+for k in range(1, 31, 2):   # try odd Ks 1..29
+    knn = KNeighborsClassifier(n_neighbors=k)
+    scores = cross_val_score(knn, X_train_scaled, y_train, cv=5)
+    if scores.mean() > best_score:
+        best_k, best_score = k, scores.mean()
+
+print(f"Best K = {best_k}  (CV accuracy: {best_score*100:.1f}%)")</div>
+
+  <div class="output-console">Best K = 7  (CV accuracy: 97.5%)</div>
+</div>
+
+<!-- Interactive KNN Demo -->
+<div class="demo-box box-knn">
+  <div class="box-title">🔮 Interactive: See How K Changes Everything</div>
+  <p style="text-align:center;color:var(--muted);margin-bottom:18px;">Pick K and a new flower to classify. See which neighbours vote!</p>
+
+  <div style="margin-bottom:16px;">
+    <div style="font-family:'Fira Code',monospace;font-size:12px;color:var(--muted);margin-bottom:10px;text-align:center;">Choose K (number of neighbours):</div>
+    <div class="k-selector">
+      <button class="k-btn" onclick="setK(1)">K = 1</button>
+      <button class="k-btn active" onclick="setK(3)">K = 3</button>
+      <button class="k-btn" onclick="setK(5)">K = 5</button>
+      <button class="k-btn" onclick="setK(7)">K = 7</button>
+      <button class="k-btn" onclick="setK(11)">K = 11</button>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+    <div>
+      <div style="font-family:'Fira Code',monospace;font-size:12px;color:var(--muted);margin-bottom:6px;">Petal Length (cm)</div>
+      <div class="slider-row" style="margin:0;">
+        <input type="range" id="knnPetal" min="1" max="7" step="0.1" value="3.5" class="sl-knn" style="flex:1;">
+        <div class="val" id="knnPetalVal">3.5</div>
+      </div>
+    </div>
+    <div>
+      <div style="font-family:'Fira Code',monospace;font-size:12px;color:var(--muted);margin-bottom:6px;">Sepal Width (cm)</div>
+      <div class="slider-row" style="margin:0;">
+        <input type="range" id="knnSepal" min="2" max="4.5" step="0.1" value="3.0" class="sl-knn" style="flex:1;">
+        <div class="val" id="knnSepalVal">3.0</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center;">
+    <button class="btn btn-knn" onclick="runKNN()">🔮 Find Neighbours &amp; Classify!</button>
+  </div>
+  <div id="knnOutput"></div>
+</div>
+
+
+<!-- ╔══════════ COMPARISON ══════════╗ -->
+<div class="section-divider div-cmp">
+  <div class="label">⚖️ Decision Tree vs KNN — When to Use What?</div>
+</div>
+
+<div class="card card-cmp">
+  <h3>The Cheat Sheet</h3>
   <div style="overflow-x:auto;">
-    <table class="data-table">
-      <thead><tr><th>PassengerId</th><th>Survived</th><th>Pclass</th><th>Name</th><th>Sex</th><th>Age</th><th>Fare</th></tr></thead>
+    <table style="width:100%;border-collapse:separate;border-spacing:0;border-radius:10px;overflow:hidden;font-size:14px;">
+      <thead>
+        <tr>
+          <th style="background:rgba(16,185,129,0.15);color:var(--good-green);padding:12px;text-align:left;font-family:'Fira Code',monospace;border-bottom:2px solid rgba(16,185,129,0.3);"></th>
+          <th style="background:rgba(34,197,94,0.12);color:var(--dt-green);padding:12px;text-align:center;font-family:'Fira Code',monospace;border-bottom:2px solid rgba(34,197,94,0.3);">🌳 Decision Tree</th>
+          <th style="background:rgba(168,85,247,0.12);color:var(--knn-purple);padding:12px;text-align:center;font-family:'Fira Code',monospace;border-bottom:2px solid rgba(168,85,247,0.3);">🔮 KNN</th>
+        </tr>
+      </thead>
       <tbody>
-        <tr><td>1</td><td>0</td><td>3</td><td>Braund, Mr. Owen</td><td>male</td><td>22</td><td>7.25</td></tr>
-        <tr><td>2</td><td>1</td><td>1</td><td>Cumings, Mrs. John</td><td>female</td><td>38</td><td>71.28</td></tr>
-        <tr><td>3</td><td>1</td><td>3</td><td>Heikkinen, Miss. Laina</td><td>female</td><td>26</td><td>7.92</td></tr>
-        <tr><td>4</td><td>1</td><td>1</td><td>Futrelle, Mrs. Jacques</td><td>female</td><td>35</td><td>53.10</td></tr>
-        <tr><td>5</td><td>0</td><td>3</td><td>Allen, Mr. William</td><td>male</td><td>35</td><td>8.05</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="tip-box">🚢 <strong>Reading the Data:</strong> Row 1 is Owen Braund, a 22-year-old male in 3rd class who paid ₹7.25 — he did NOT survive (Survived=0). Row 2 is Mrs. Cumings, 38, 1st class — she DID survive (Survived=1). Already we see a pattern forming!</div>
-</div>
-
-<div class="card card-data">
-  <h3>Titanic Column Dictionary</h3>
-  <p>Every good dataset comes with a <strong>data dictionary</strong> — a guide explaining what each column means. Here's ours:</p>
-
-  <div style="overflow-x:auto;">
-    <table class="data-table">
-      <thead><tr><th>Column</th><th>What It Means</th><th>Type</th><th>Example</th></tr></thead>
-      <tbody>
-        <tr><td><strong>PassengerId</strong></td><td>Unique ID for each passenger</td><td>Integer</td><td>1, 2, 3...</td></tr>
-        <tr><td><strong>Survived</strong></td><td>Did they survive? <span style="color:var(--clean-green);">1=Yes</span>, <span style="color:#f85149;">0=No</span></td><td>Integer (binary)</td><td>0 or 1</td></tr>
-        <tr><td><strong>Pclass</strong></td><td>Ticket class: 1st, 2nd, or 3rd</td><td>Integer (1, 2, 3)</td><td>1 = luxury, 3 = economy</td></tr>
-        <tr><td><strong>Name</strong></td><td>Full name with title</td><td>String</td><td>"Braund, Mr. Owen"</td></tr>
-        <tr><td><strong>Sex</strong></td><td>Gender</td><td>String</td><td>"male" or "female"</td></tr>
-        <tr><td><strong>Age</strong></td><td>Age in years</td><td>Float</td><td>22, 38, 0.83 (baby!)</td></tr>
-        <tr><td><strong>SibSp</strong></td><td>Siblings/spouses aboard</td><td>Integer</td><td>0, 1, 2...</td></tr>
-        <tr><td><strong>Parch</strong></td><td>Parents/children aboard</td><td>Integer</td><td>0, 1, 2...</td></tr>
-        <tr><td><strong>Ticket</strong></td><td>Ticket number</td><td>String</td><td>"A/5 21171"</td></tr>
-        <tr><td><strong>Fare</strong></td><td>How much they paid</td><td>Float</td><td>7.25, 71.28</td></tr>
-        <tr><td><strong>Cabin</strong></td><td>Cabin number</td><td>String</td><td>"C85" (many missing!)</td></tr>
-        <tr><td><strong>Embarked</strong></td><td>Port boarded: C, Q, S</td><td>String</td><td>S=Southampton, C=Cherbourg, Q=Queenstown</td></tr>
+        <tr><td style="padding:10px;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);"><strong style="color:#fff;">Training time</strong></td><td style="padding:10px;text-align:center;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);">Fast ⚡</td><td style="padding:10px;text-align:center;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);">Instant (lazy!) ⚡⚡</td></tr>
+        <tr><td style="padding:10px;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);"><strong style="color:#fff;">Prediction time</strong></td><td style="padding:10px;text-align:center;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);">Very fast ⚡</td><td style="padding:10px;text-align:center;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);">Slow on big data 🐢</td></tr>
+        <tr><td style="padding:10px;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);"><strong style="color:#fff;">Explainability</strong></td><td style="padding:10px;text-align:center;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);">Very high — draw it! 🖊️</td><td style="padding:10px;text-align:center;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);">Medium — "nearest"</td></tr>
+        <tr><td style="padding:10px;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);"><strong style="color:#fff;">Feature scaling needed?</strong></td><td style="padding:10px;text-align:center;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);">No ✅</td><td style="padding:10px;text-align:center;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);"><strong style="color:var(--err-rose);">Yes! Essential</strong></td></tr>
+        <tr><td style="padding:10px;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);"><strong style="color:#fff;">Handles outliers well?</strong></td><td style="padding:10px;text-align:center;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);">OK</td><td style="padding:10px;text-align:center;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);">No — outliers distort distance</td></tr>
+        <tr><td style="padding:10px;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);"><strong style="color:#fff;">Key hyperparameter</strong></td><td style="padding:10px;text-align:center;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);">max_depth</td><td style="padding:10px;text-align:center;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);">K (n_neighbors)</td></tr>
+        <tr><td style="padding:10px;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);"><strong style="color:#fff;">Works on regression?</strong></td><td style="padding:10px;text-align:center;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);">Yes (DecisionTreeRegressor)</td><td style="padding:10px;text-align:center;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);">Yes (KNeighborsRegressor)</td></tr>
+        <tr><td style="padding:10px;color:var(--muted);"><strong style="color:#fff;">Best used for</strong></td><td style="padding:10px;text-align:center;color:var(--muted);">Rules-based problems, explainability needed, tabular data</td><td style="padding:10px;text-align:center;color:var(--muted);">Recommendation systems, small-medium datasets, quick baseline</td></tr>
       </tbody>
     </table>
   </div>
 </div>
 
-
-<!-- ╔══════════ FILE FORMATS ══════════╗ -->
-<div class="section-divider div-load">
-  <div class="label">📂 What is CSV? What is Excel?</div>
-</div>
-
-<div class="card card-load">
-  <h3>CSV — The Universal Data Format</h3>
-  <p><strong>CSV</strong> stands for <strong>Comma-Separated Values</strong>. It's the simplest way to store a table — just a plain text file where each value is separated by a comma, and each line is a new row.</p>
-
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0;">
-    <div style="background:rgba(249,115,22,0.08);border:2px solid rgba(249,115,22,0.25);border-radius:12px;padding:20px;">
-      <div style="font-family:'Fredoka One',cursive;color:var(--load-orange);font-size:16px;margin-bottom:8px;">📄 What a CSV looks like inside</div>
-      <div class="code-line" style="font-size:12px;color:var(--load-amber);margin-top:8px;">PassengerId,Survived,Pclass,Name,Sex,Age,Fare
-1,0,3,"Braund, Mr. Owen",male,22,7.25
-2,1,1,"Cumings, Mrs. John",female,38,71.28
-3,1,3,"Heikkinen, Miss. Laina",female,26,7.92</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:10px;">Plain text — commas separate values. Opens in ANY text editor, Excel, Google Sheets, Python!</div>
+<div class="card card-cmp">
+  <h3>The Big Picture — 4 Algorithms You Now Know</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0;">
+    <div style="background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.2);border-radius:10px;padding:16px;">
+      <div style="font-family:'Fredoka One',cursive;color:#3b82f6;font-size:15px;">📈 Linear Regression</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:6px;">Predict numbers. House prices, salaries, scores.</div>
     </div>
-    <div style="background:rgba(16,185,129,0.08);border:2px solid rgba(16,185,129,0.25);border-radius:12px;padding:20px;">
-      <div style="font-family:'Fredoka One',cursive;color:var(--clean-green);font-size:16px;margin-bottom:8px;">📗 What Excel (.xlsx) is</div>
-      <div style="margin-top:8px;">
-        <table class="data-table" style="font-size:11px;"><thead><tr><th class="th-clean">A</th><th class="th-clean">B</th><th class="th-clean">C</th></tr></thead>
-        <tbody><tr><td>PassengerId</td><td>Survived</td><td>Pclass</td></tr><tr><td>1</td><td>0</td><td>3</td></tr><tr><td>2</td><td>1</td><td>1</td></tr></tbody></table>
-      </div>
-      <div style="font-size:13px;color:var(--muted);margin-top:10px;">Binary format — has formatting, formulas, multiple sheets. Needs Excel or special libraries to read!</div>
+    <div style="background:rgba(249,115,22,0.06);border:1px solid rgba(249,115,22,0.2);border-radius:10px;padding:16px;">
+      <div style="font-family:'Fredoka One',cursive;color:#f97316;font-size:15px;">📊 Logistic Regression</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:6px;">Binary classification. Spam, survival, disease.</div>
+    </div>
+    <div style="background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.2);border-radius:10px;padding:16px;">
+      <div style="font-family:'Fredoka One',cursive;color:var(--dt-green);font-size:15px;">🌳 Decision Tree</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:6px;">Any classification / regression. Explainable, fast.</div>
+    </div>
+    <div style="background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.2);border-radius:10px;padding:16px;">
+      <div style="font-family:'Fredoka One',cursive;color:var(--knn-purple);font-size:15px;">🔮 KNN</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:6px;">Classification / regression. No training. Intuitive.</div>
     </div>
   </div>
-</div>
-
-<div class="card card-load">
-  <h3>CSV vs Excel — When to Use Which?</h3>
-
-  <div style="overflow-x:auto;">
-    <table class="data-table">
-      <thead><tr><th class="th-load">Feature</th><th class="th-load">CSV (.csv)</th><th class="th-load">Excel (.xlsx)</th></tr></thead>
-      <tbody>
-        <tr><td><strong>Format</strong></td><td>Plain text</td><td>Binary (proprietary)</td></tr>
-        <tr><td><strong>Size</strong></td><td>Small — just data</td><td>Larger — stores formatting too</td></tr>
-        <tr><td><strong>Multiple sheets?</strong></td><td>No — one table per file</td><td>Yes — many tabs/sheets</td></tr>
-        <tr><td><strong>Formulas?</strong></td><td>No</td><td>Yes (SUM, VLOOKUP, etc.)</td></tr>
-        <tr><td><strong>Best for</strong></td><td>Data science, ML, sharing data</td><td>Business reports, finance</td></tr>
-        <tr><td><strong>Python command</strong></td><td>pd.read_csv()</td><td>pd.read_excel()</td></tr>
-        <tr><td><strong>Used on Kaggle?</strong></td><td style="color:var(--clean-green);font-weight:700;">Yes! Almost always</td><td>Sometimes</td></tr>
-      </tbody>
-    </table>
+  <div class="flow-pipe">
+    <div class="flow-step" style="background:rgba(59,130,246,0.2);color:#3b82f6;border-radius:8px;font-size:12px;">Linear<br>Regression</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step" style="background:rgba(249,115,22,0.2);color:#f97316;border-radius:8px;font-size:12px;">Logistic<br>Regression</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step" style="background:rgba(34,197,94,0.2);color:var(--dt-green);border-radius:8px;font-size:12px;">Decision<br>Tree</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step" style="background:rgba(168,85,247,0.2);color:var(--knn-purple);border-radius:8px;font-size:12px;">KNN</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step" style="background:rgba(245,158,11,0.2);color:var(--warn-amber);border-radius:8px;font-size:12px;">Next:<br>Random<br>Forests 🌲🌲</div>
   </div>
-
-  <div class="tip-box tip-box-load">📂 <strong>Pro Tip:</strong> In data science, CSV is king. It's lightweight, universal, and every tool reads it. Kaggle, GitHub, and most ML pipelines use CSV. You'll use <code>pd.read_csv()</code> 95% of the time!</div>
-</div>
-
-<div class="card card-load">
-  <h3>Other Data Formats You'll See</h3>
-
-  <div class="concept-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
-    <div class="concept-card" style="border-color:var(--load-orange);padding:16px;">
-      <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--load-orange);margin-bottom:4px;">.tsv</div>
-      <div style="font-size:12px;color:var(--muted);">Tab-separated. Like CSV but tabs instead of commas.</div>
-    </div>
-    <div class="concept-card" style="border-color:var(--data-blue);padding:16px;">
-      <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--data-blue);margin-bottom:4px;">.json</div>
-      <div style="font-size:12px;color:var(--muted);">JavaScript Object Notation. Used by APIs & web apps.</div>
-    </div>
-    <div class="concept-card" style="border-color:var(--clean-green);padding:16px;">
-      <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--clean-green);margin-bottom:4px;">.parquet</div>
-      <div style="font-size:12px;color:var(--muted);">Compressed columnar format. Super fast for big data!</div>
-    </div>
-    <div class="concept-card" style="border-color:var(--analyze-purple);padding:16px;">
-      <div style="font-family:'Fredoka One',cursive;font-size:14px;color:var(--analyze-purple);margin-bottom:4px;">.sql</div>
-      <div style="font-size:12px;color:var(--muted);">Database queries. Data stored in relational databases.</div>
-    </div>
-  </div>
-</div>
-
-
-<!-- ╔══════════ LOADING ══════════╗ -->
-<div class="section-divider div-load">
-  <div class="label">📥 Loading the Titanic Dataset</div>
-</div>
-
-<div class="card card-load">
-  <h3>Step 1: Import Libraries</h3>
-  <p>We need three libraries — <strong>Pandas</strong> for data, <strong>NumPy</strong> for math, and <strong>Matplotlib/Seaborn</strong> for charts.</p>
-
-  <div class="code-line">import pandas as pd       # Data manipulation — the star of the show!
-import numpy as np        # Numerical computing
-import matplotlib.pyplot as plt   # Basic plotting
-import seaborn as sns     # Beautiful statistical plots
-
-# Settings for prettier charts
-sns.set_style("darkgrid")
-plt.rcParams['figure.figsize'] = (10, 6)</div>
-</div>
-
-<div class="card card-load">
-  <h3>Step 2: Load the CSV</h3>
-
-  <div class="code-line"># Load the Titanic dataset
-df = pd.read_csv("titanic.csv")
-
-# Or directly from a URL (Kaggle / GitHub)
-url = "https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv"
-df = pd.read_csv(url)
-
-print("✅ Dataset loaded!")
-print(f"Shape: {df.shape[0]} rows × {df.shape[1]} columns")</div>
-
-  <div class="output-console">✅ Dataset loaded!
-Shape: 891 rows × 12 columns</div>
-
-  <div class="tip-box tip-box-load">📥 <strong>What just happened?</strong> <code>pd.read_csv()</code> read the file, understood the commas, turned it into a <strong>DataFrame</strong> (Pandas's fancy table), and stored it in a variable called <code>df</code>. Now we can explore it!</div>
-</div>
-
-<div class="card card-load">
-  <h3>Step 3: First Look — Exploring the Data</h3>
-  <p>Before doing ANYTHING, always explore your data first. Here are the <strong>5 essential commands</strong>:</p>
-
-  <div class="code-line"># 1. First 5 rows — see what the data looks like
-df.head()</div>
-
-  <div class="output-console" style="font-size:11px;">   PassengerId  Survived  Pclass                            Name     Sex   Age  SibSp  Parch     Ticket    Fare Cabin  Embarked
-0            1         0       3       Braund, Mr. Owen Harris    male  22.0      1      0  A/5 21171   7.25   NaN         S
-1            2         1       1  Cumings, Mrs. John Bradley  female  38.0      1      0   PC 17599  71.28   C85         C
-2            3         1       3    Heikkinen, Miss. Laina     female  26.0      0      0  STON/O2.  7.92   NaN         S
-3            4         1       1  Futrelle, Mrs. Jacques Heath  female  35.0      1      0    113803  53.10  C123         S
-4            5         0       3      Allen, Mr. William Henry    male  35.0      0      0    373450   8.05   NaN         S</div>
-
-  <div class="code-line"># 2. Shape — how big is our data?
-print("Shape:", df.shape)       # (891, 12)
-
-# 3. Data types — what kind of data is in each column?
-print(df.dtypes)
-
-# 4. Quick statistics — numbers at a glance
-df.describe()
-
-# 5. Missing values — where's the data incomplete?
-print(df.isnull().sum())</div>
-
-  <div class="output-console">Shape: (891, 12)
-
-PassengerId      0    ← No missing!
-Survived         0
-Pclass           0
-Name             0
-Sex              0
-Age            177    ← 😱 177 passengers have no age!
-SibSp            0
-Parch            0
-Ticket           0
-Fare             0
-Cabin          687    ← 😱 687 missing! (77% gone!)
-Embarked         2    ← 2 missing</div>
-</div>
-
-<div class="card card-load">
-  <h3>Step 4: df.describe() — Statistics in One Line</h3>
-  <p>This single command gives you count, mean, std, min, 25%, 50% (median), 75%, and max for every number column!</p>
-
-  <div class="code-line">df.describe()</div>
-
-  <div class="output-console" style="font-size:11px;">       PassengerId  Survived    Pclass       Age     SibSp     Parch      Fare
-count    891.0000  891.0000  891.0000  714.0000  891.0000  891.0000  891.0000
-mean     446.0000    0.3838    2.3086   29.6991    0.5230    0.3816   32.2042
-std      257.3538    0.4866    0.8361   14.5265    1.1027    0.8061   49.6934
-min        1.0000    0.0000    1.0000    0.4200    0.0000    0.0000    0.0000
-25%      223.5000    0.0000    2.0000   20.1250    0.0000    0.0000    7.9104
-50%      446.0000    0.0000    3.0000   28.0000    0.0000    0.0000   14.4542
-75%      669.5000    1.0000    3.0000   38.0000    1.0000    0.0000   31.0000
-max      891.0000    1.0000    3.0000   80.0000    8.0000    6.0000  512.3292</div>
-
-  <div style="background:rgba(59,130,246,0.08);border:2px solid rgba(59,130,246,0.2);border-radius:12px;padding:20px;margin:16px 0;">
-    <div style="font-family:'Fredoka One',cursive;color:var(--data-blue);font-size:16px;margin-bottom:12px;">🔍 What This Tells Us Already!</div>
-    <div style="font-size:15px;color:var(--muted);line-height:2.2;">
-      • <strong style="color:#fff;">Survival rate: 38.4%</strong> — most people (61.6%) did NOT survive<br>
-      • <strong style="color:#fff;">Average age: ~30 years</strong> — youngest was 0.42 (a baby!), oldest was 80<br>
-      • <strong style="color:#fff;">Average fare: ₹32.20</strong> — but max was ₹512! Huge range = different classes<br>
-      • <strong style="color:#fff;">Age has only 714 values</strong> (count) — but we have 891 rows. That means 177 missing!<br>
-      • <strong style="color:#fff;">Most were in 3rd class</strong> — median Pclass = 3
-    </div>
-  </div>
-</div>
-
-<!-- Interactive: Explore Commands -->
-<div class="demo-box box-load">
-  <div class="box-title">🔍 Interactive: Explore the Titanic</div>
-  <p style="text-align:center;color:var(--muted);margin-bottom:16px;">Click a Pandas command and see the result!</p>
-  <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-    <button class="btn btn-load" onclick="showExplore('head')">df.head()</button>
-    <button class="btn btn-load" onclick="showExplore('shape')">df.shape</button>
-    <button class="btn btn-load" onclick="showExplore('dtypes')">df.dtypes</button>
-    <button class="btn btn-load" onclick="showExplore('null')">df.isnull().sum()</button>
-    <button class="btn btn-load" onclick="showExplore('value')">df["Survived"].value_counts()</button>
-    <button class="btn btn-load" onclick="showExplore('unique')">df["Embarked"].unique()</button>
-  </div>
-  <div id="exploreOutput"></div>
-</div>
-
-
-<!-- ╔══════════ CLEANING ══════════╗ -->
-<div class="section-divider div-clean">
-  <div class="label">🧹 Cleaning the Titanic Data</div>
-</div>
-
-<div class="card card-clean">
-  <h3>Why Clean Data? — Garbage In, Garbage Out!</h3>
-  <p>Real-world data is <strong>always messy</strong>. Our Titanic dataset has 3 problems we need to fix before analysis:</p>
-
-  <div class="concept-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));">
-    <div class="concept-card" style="border-color:#f85149;">
-      <div style="font-size:28px;margin-bottom:8px;">❓</div>
-      <div style="font-family:'Fredoka One',cursive;font-size:15px;color:#f85149;margin-bottom:6px;">Missing Values</div>
-      <div style="font-size:12px;color:var(--muted);">Age: 177 missing (20%)<br>Cabin: 687 missing (77%!)<br>Embarked: 2 missing</div>
-    </div>
-    <div class="concept-card" style="border-color:var(--load-orange);">
-      <div style="font-size:28px;margin-bottom:8px;">🔤</div>
-      <div style="font-family:'Fredoka One',cursive;font-size:15px;color:var(--load-orange);margin-bottom:6px;">Wrong Data Types</div>
-      <div style="font-size:12px;color:var(--muted);">"Sex" is text — ML needs numbers!<br>"Embarked" is letters — need encoding</div>
-    </div>
-    <div class="concept-card" style="border-color:var(--analyze-purple);">
-      <div style="font-size:28px;margin-bottom:8px;">🗑️</div>
-      <div style="font-family:'Fredoka One',cursive;font-size:15px;color:var(--analyze-purple);margin-bottom:6px;">Useless Columns</div>
-      <div style="font-size:12px;color:var(--muted);">PassengerId: just a counter<br>Name: unique text (hard to use)<br>Ticket: random strings</div>
-    </div>
-  </div>
-</div>
-
-<div class="card card-clean">
-  <h3>Fix 1: Handle Missing Values</h3>
-
-  <div class="code-line"># Check what's missing
-print(df.isnull().sum())
-print(f"\nAge missing: {df['Age'].isnull().sum()} out of {len(df)} ({df['Age'].isnull().mean()*100:.1f}%)")
-print(f"Cabin missing: {df['Cabin'].isnull().sum()} out of {len(df)} ({df['Cabin'].isnull().mean()*100:.1f}%)")</div>
-
-  <div class="output-console">Age missing: 177 out of 891 (19.9%)
-Cabin missing: 687 out of 891 (77.1%)</div>
-
-  <div style="display:grid;gap:12px;margin:16px 0;">
-    <div style="background:rgba(16,185,129,0.06);border:2px solid rgba(16,185,129,0.2);border-radius:10px;padding:16px;">
-      <strong style="color:var(--clean-green);">Age → Fill with median (28)</strong>
-      <div class="code-line" style="font-size:13px;margin-top:8px;"># Fill Age with the median (middle value)
-df["Age"].fillna(df["Age"].median(), inplace=True)
-print("Age missing after fix:", df["Age"].isnull().sum())  # 0!</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:8px;">Why median not mean? Because mean is affected by outliers (that 80-year-old!). Median is safer.</div>
-    </div>
-
-    <div style="background:rgba(248,81,73,0.06);border:2px solid rgba(248,81,73,0.2);border-radius:10px;padding:16px;">
-      <strong style="color:#f85149;">Cabin → DROP the whole column</strong>
-      <div class="code-line" style="font-size:13px;margin-top:8px;"># 77% missing = too much to fill. Drop it!
-df.drop("Cabin", axis=1, inplace=True)
-print("Columns after drop:", list(df.columns))</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:8px;">Rule of thumb: If >50% of a column is missing, drop the whole column.</div>
-    </div>
-
-    <div style="background:rgba(59,130,246,0.06);border:2px solid rgba(59,130,246,0.2);border-radius:10px;padding:16px;">
-      <strong style="color:var(--data-blue);">Embarked → Fill with mode (most common)</strong>
-      <div class="code-line" style="font-size:13px;margin-top:8px;"># Only 2 missing — fill with the most common port
-df["Embarked"].fillna(df["Embarked"].mode()[0], inplace=True)
-print("Embarked missing:", df["Embarked"].isnull().sum())  # 0!</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:8px;">Mode = most frequent value. Most passengers boarded at Southampton ("S").</div>
-    </div>
-  </div>
-</div>
-
-<div class="card card-clean">
-  <h3>Fix 2: Drop Useless Columns</h3>
-
-  <div class="code-line"># Remove columns that don't help analysis
-df.drop(["PassengerId", "Name", "Ticket"], axis=1, inplace=True)
-
-print("Remaining columns:", list(df.columns))
-print("Shape:", df.shape)</div>
-
-  <div class="output-console">Remaining columns: ['Survived', 'Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'Embarked']
-Shape: (891, 8)</div>
-
-  <div class="tip-box tip-box-clean">🧹 <strong>We went from 12 columns to 8!</strong> We dropped PassengerId (just a counter), Name (unique text), Ticket (random codes), and Cabin (77% missing). The remaining 8 columns are all useful for analysis.</div>
-</div>
-
-<div class="card card-clean">
-  <h3>Fix 3: Convert Text to Numbers (Encoding)</h3>
-  <p>ML models need <strong>numbers</strong>, not text! We need to convert "Sex" and "Embarked".</p>
-
-  <div class="code-line"># Method 1: Map (for binary columns like Sex)
-df["Sex"] = df["Sex"].map({"male": 0, "female": 1})
-print("Sex column:\n", df["Sex"].head())
-
-# Method 2: One-Hot Encoding (for multi-category columns)
-df = pd.get_dummies(df, columns=["Embarked"], drop_first=True)
-print("\nNew columns:", list(df.columns))</div>
-
-  <div class="output-console">Sex column:
-0    0    ← male
-1    1    ← female
-2    1    ← female
-3    1    ← female
-4    0    ← male
-
-New columns: ['Survived', 'Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'Embarked_Q', 'Embarked_S']</div>
-
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0;">
-    <div style="background:rgba(248,81,73,0.06);border:2px solid rgba(248,81,73,0.2);border-radius:10px;padding:16px;text-align:center;">
-      <strong style="color:#f85149;">Before</strong>
-      <div style="font-family:'Fira Code',monospace;font-size:13px;color:var(--muted);margin-top:8px;">Sex: "male", "female"<br>Embarked: "S", "C", "Q"</div>
-    </div>
-    <div style="background:rgba(16,185,129,0.06);border:2px solid rgba(16,185,129,0.2);border-radius:10px;padding:16px;text-align:center;">
-      <strong style="color:var(--clean-green);">After</strong>
-      <div style="font-family:'Fira Code',monospace;font-size:13px;color:var(--muted);margin-top:8px;">Sex: 0, 1<br>Embarked_Q: 0/1, Embarked_S: 0/1</div>
-    </div>
-  </div>
-</div>
-
-<div class="card card-clean">
-  <h3>Final Check: Is Our Data Clean?</h3>
-
-  <div class="code-line"># Final validation
-print("Missing values:\n", df.isnull().sum())
-print(f"\nShape: {df.shape}")
-print(f"Data types:\n{df.dtypes}")</div>
-
-  <div class="output-console">Missing values:
-Survived      0
-Pclass        0
-Sex           0
-Age           0
-SibSp         0
-Parch         0
-Fare          0
-Embarked_Q    0
-Embarked_S    0
-dtype: int64
-
-Shape: (891, 9)
-All numeric ✅  No missing values ✅  Ready for analysis! 🎉</div>
-
-  <div class="formula-box" style="border-color:var(--clean-green);">
-    <div style="font-family:'Fredoka One',cursive;font-size:16px;color:var(--clean-green);">Data Cleaning Summary</div>
-    <div class="formula" style="color:var(--clean-green);font-size:16px;">12 columns → 9 columns · 0 missing values · All numeric</div>
-    <div style="font-size:14px;color:var(--muted);margin-top:8px;">Filled Age with median, dropped Cabin, filled Embarked with mode, encoded Sex & Embarked</div>
-  </div>
-</div>
-
-<!-- Interactive: Cleaning Steps -->
-<div class="demo-box box-clean">
-  <div class="box-title">🧹 Interactive: Cleaning Pipeline</div>
-  <p style="text-align:center;color:var(--muted);margin-bottom:16px;">Click each step to see the before/after!</p>
-  <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-    <button class="btn btn-clean" onclick="showClean('missing')">1. Check Missing</button>
-    <button class="btn btn-clean" onclick="showClean('fillage')">2. Fill Age</button>
-    <button class="btn btn-clean" onclick="showClean('dropcabin')">3. Drop Cabin</button>
-    <button class="btn btn-clean" onclick="showClean('encode')">4. Encode Text</button>
-    <button class="btn btn-clean" onclick="showClean('final')">5. Final Check ✅</button>
-  </div>
-  <div id="cleanOutput"></div>
-</div>
-
-
-<!-- ╔══════════ ANALYSIS ══════════╗ -->
-<div class="section-divider div-analyze">
-  <div class="label">🔍 Analyzing the Titanic Data</div>
-</div>
-
-<div class="card card-analyze">
-  <h3>Technique 1: Value Counts — Who Survived?</h3>
-  <p><code>value_counts()</code> counts how many times each value appears. Perfect for categorical data!</p>
-
-  <div class="code-line"># Overall survival
-print(df["Survived"].value_counts())
-print(f"\nSurvival rate: {df['Survived'].mean()*100:.1f}%")</div>
-
-  <div class="output-console">0    549    ← Died
-1    342    ← Survived
-
-Survival rate: 38.4%</div>
-
-  <div style="display:flex;gap:4px;margin:16px 0;height:50px;border-radius:10px;overflow:hidden;">
-    <div style="flex:549;background:linear-gradient(90deg,#f85149,rgba(248,81,73,0.6));display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:14px;color:#fff;">Died: 549 (61.6%)</div>
-    <div style="flex:342;background:linear-gradient(90deg,rgba(16,185,129,0.6),var(--clean-green));display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:14px;color:#fff;">Survived: 342 (38.4%)</div>
-  </div>
-</div>
-
-<div class="card card-analyze">
-  <h3>Technique 2: GroupBy — Survival by Category</h3>
-  <p><code>groupby()</code> splits data into groups, applies a function, and combines results. The most powerful analysis tool in Pandas!</p>
-
-  <div class="code-line"># Survival rate by gender
-print("By Gender:")
-print(df.groupby("Sex")["Survived"].mean() * 100)
-
-# Survival rate by class
-print("\nBy Class:")
-print(df.groupby("Pclass")["Survived"].mean() * 100)</div>
-
-  <div class="output-console">By Gender:
-Sex
-0    18.9%    ← Male survival: only 18.9%!
-1    74.2%    ← Female survival: 74.2%!
-
-By Class:
-Pclass
-1    63.0%    ← 1st class: 63% survived
-2    47.3%    ← 2nd class: 47%
-3    24.2%    ← 3rd class: only 24%!</div>
-
-  <div style="background:rgba(139,92,246,0.08);border:2px solid rgba(139,92,246,0.25);border-radius:12px;padding:20px;margin:16px 0;">
-    <div style="font-family:'Fredoka One',cursive;color:var(--analyze-purple);font-size:18px;margin-bottom:12px;">🔍 Key Findings!</div>
-    <div style="display:grid;gap:10px;">
-      <div style="display:flex;gap:12px;align-items:center;">
-        <div style="font-size:24px;">👩</div>
-        <div><strong style="color:#fff;">Women survived at 4× the rate of men</strong> (74% vs 19%) — "women and children first!" policy confirmed by data.</div>
-      </div>
-      <div style="display:flex;gap:12px;align-items:center;">
-        <div style="font-size:24px;">🎩</div>
-        <div><strong style="color:#fff;">1st class survived at 2.6× the rate of 3rd class</strong> (63% vs 24%) — wealth = access to lifeboats.</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="card card-analyze">
-  <h3>Technique 3: Cross-Tabulation (GroupBy with 2 Variables)</h3>
-
-  <div class="code-line"># Survival by class AND gender combined
-cross = df.groupby(["Pclass", "Sex"])["Survived"].mean() * 100
-print(cross.round(1))</div>
-
-  <div class="output-console">Pclass  Sex
-1       0      36.8%    ← 1st class male
-        1      96.8%    ← 1st class female — almost ALL survived!
-2       0      15.7%    ← 2nd class male
-        1      92.1%    ← 2nd class female
-3       0      13.5%    ← 3rd class male — worst odds
-        1      50.0%    ← 3rd class female</div>
-
-  <div style="overflow-x:auto;margin:16px 0;">
-    <table class="data-table">
-      <thead><tr><th class="th-analyze"></th><th class="th-analyze">Male</th><th class="th-analyze">Female</th></tr></thead>
-      <tbody>
-        <tr><td><strong>1st Class</strong></td><td>36.8%</td><td style="color:var(--clean-green);font-weight:700;">96.8% 🟢</td></tr>
-        <tr><td><strong>2nd Class</strong></td><td>15.7%</td><td style="color:var(--clean-green);font-weight:700;">92.1% 🟢</td></tr>
-        <tr><td><strong>3rd Class</strong></td><td style="color:#f85149;font-weight:700;">13.5% 🔴</td><td>50.0%</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="tip-box tip-box-analyze">🎯 <strong>The Story:</strong> If you were a 1st-class woman, you had a 97% chance of surviving. If you were a 3rd-class man, only 13.5%. Class and gender were literally the difference between life and death.</div>
-</div>
-
-<div class="card card-analyze">
-  <h3>Technique 4: Descriptive Statistics by Group</h3>
-
-  <div class="code-line"># Compare fares by survival
-print("Average fare — Survived vs Not:")
-print(df.groupby("Survived")["Fare"].mean().round(2))
-
-# Compare ages
-print("\nAverage age — Survived vs Not:")
-print(df.groupby("Survived")["Age"].mean().round(1))</div>
-
-  <div class="output-console">Average fare — Survived vs Not:
-Survived
-0    22.12    ← Died: average fare ₹22
-1    48.40    ← Survived: average fare ₹48 — 2× more!
-
-Average age — Survived vs Not:
-Survived
-0    30.6     ← Died: average age 30.6
-1    28.3     ← Survived: slightly younger (28.3)</div>
-</div>
-
-<div class="card card-analyze">
-  <h3>Technique 5: Correlation — Which Features Matter Most?</h3>
-  <p><strong>Correlation</strong> measures how strongly two variables are connected (-1 to +1). Values close to ±1 = strong relationship.</p>
-
-  <div class="code-line"># Correlation with Survived
-print("Correlation with Survival:")
-print(df.corr()["Survived"].sort_values(ascending=False).round(3))</div>
-
-  <div class="output-console">Correlation with Survival:
-Survived      1.000    ← itself
-Sex           0.543    ← STRONGEST! Female = more likely to survive
-Fare          0.257    ← Higher fare = more likely
-Parch         0.082    ← Slight positive
-Embarked_Q   -0.004    ← Almost none
-SibSp        -0.035    ← Slight negative
-Age          -0.064    ← Slight negative
-Embarked_S   -0.156    ← Boarding at Southampton = less likely
-Pclass       -0.338    ← Higher class number = LESS likely (3rd class worst)</div>
-
-  <div style="background:rgba(139,92,246,0.08);border:2px solid rgba(139,92,246,0.25);border-radius:12px;padding:20px;margin:16px 0;">
-    <div style="font-family:'Fredoka One',cursive;color:var(--analyze-purple);font-size:16px;margin-bottom:12px;">📊 Top Survival Predictors (by correlation)</div>
-    <div style="display:grid;gap:6px;">
-      <div style="display:flex;align-items:center;gap:10px;"><div style="width:60%;max-width:200px;height:24px;background:linear-gradient(90deg,var(--clean-green),var(--clean-teal));border-radius:6px;display:flex;align-items:center;padding-left:8px;font-family:'Fira Code',monospace;font-size:11px;color:#000;">0.543</div><span style="font-size:14px;">Sex (Female +++ )</span></div>
-      <div style="display:flex;align-items:center;gap:10px;"><div style="width:38%;max-width:200px;height:24px;background:rgba(16,185,129,0.5);border-radius:6px;display:flex;align-items:center;padding-left:8px;font-family:'Fira Code',monospace;font-size:11px;color:#000;">−0.338</div><span style="font-size:14px;">Pclass (1st class ++ )</span></div>
-      <div style="display:flex;align-items:center;gap:10px;"><div style="width:30%;max-width:200px;height:24px;background:rgba(16,185,129,0.35);border-radius:6px;display:flex;align-items:center;padding-left:8px;font-family:'Fira Code',monospace;font-size:11px;color:#fff;">0.257</div><span style="font-size:14px;">Fare (Higher fare + )</span></div>
-    </div>
-  </div>
-</div>
-
-<div class="card card-analyze">
-  <h3>Technique 6: Filtering — Ask Specific Questions</h3>
-
-  <div class="code-line"># How many children (age < 12) survived?
-children = df[df["Age"] < 12]
-print(f"Children on board: {len(children)}")
-print(f"Children survived: {children['Survived'].sum()}")
-print(f"Child survival rate: {children['Survived'].mean()*100:.1f}%")
-
-# Rich passengers (fare > 100)
-rich = df[df["Fare"] > 100]
-print(f"\nRich passengers: {len(rich)}")
-print(f"Rich survival rate: {rich['Survived'].mean()*100:.1f}%")
-
-# Women in 3rd class
-women_3rd = df[(df["Sex"] == 1) & (df["Pclass"] == 3)]
-print(f"\nWomen in 3rd class: {len(women_3rd)}")
-print(f"Their survival rate: {women_3rd['Survived'].mean()*100:.1f}%")</div>
-
-  <div class="output-console">Children on board: 68
-Children survived: 40
-Child survival rate: 58.8%
-
-Rich passengers: 34
-Rich survival rate: 73.5%
-
-Women in 3rd class: 144
-Their survival rate: 50.0%</div>
-</div>
-
-<!-- Interactive: Ask the Data -->
-<div class="demo-box box-analyze">
-  <div class="box-title">🔍 Interactive: Ask the Titanic Data</div>
-  <p style="text-align:center;color:var(--muted);margin-bottom:16px;">Pick a question and see the Pandas code + answer!</p>
-  <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
-    <button class="btn btn-analyze" onclick="askData('overall')">Overall Survival</button>
-    <button class="btn btn-analyze" onclick="askData('gender')">By Gender</button>
-    <button class="btn btn-analyze" onclick="askData('class')">By Class</button>
-    <button class="btn btn-analyze" onclick="askData('age')">By Age Group</button>
-    <button class="btn btn-analyze" onclick="askData('family')">Family Size</button>
-    <button class="btn btn-analyze" onclick="askData('fare')">By Fare</button>
-  </div>
-  <div id="analyzeOutput"></div>
-</div>
-
-
-<!-- ╔══════════ PUTTING IT ALL TOGETHER ══════════╗ -->
-<div class="section-divider div-viz">
-  <div class="label">🚢 The Complete Pipeline</div>
-</div>
-
-<div class="card card-viz">
-  <h3>From CSV to Insights — The Full Journey</h3>
-
-  <div style="display:grid;gap:8px;margin:20px 0;">
-    <div style="display:flex;gap:0;align-items:center;">
-      <div style="background:var(--data-blue);color:#fff;padding:12px 18px;border-radius:10px 0 0 10px;font-family:'Fredoka One',cursive;font-size:14px;min-width:120px;text-align:center;">1. Load</div>
-      <div style="flex:1;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:0 10px 10px 0;padding:10px 16px;font-size:14px;color:var(--muted);">pd.read_csv() → 891 rows × 12 columns</div>
-    </div>
-    <div style="display:flex;gap:0;align-items:center;">
-      <div style="background:var(--load-orange);color:#000;padding:12px 18px;border-radius:10px 0 0 10px;font-family:'Fredoka One',cursive;font-size:14px;min-width:120px;text-align:center;">2. Explore</div>
-      <div style="flex:1;background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.2);border-radius:0 10px 10px 0;padding:10px 16px;font-size:14px;color:var(--muted);">head(), shape, describe(), isnull() → found 3 problems</div>
-    </div>
-    <div style="display:flex;gap:0;align-items:center;">
-      <div style="background:var(--clean-green);color:#000;padding:12px 18px;border-radius:10px 0 0 10px;font-family:'Fredoka One',cursive;font-size:14px;min-width:120px;text-align:center;">3. Clean</div>
-      <div style="flex:1;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:0 10px 10px 0;padding:10px 16px;font-size:14px;color:var(--muted);">Fill missing, drop useless, encode text → 891 × 9, all clean</div>
-    </div>
-    <div style="display:flex;gap:0;align-items:center;">
-      <div style="background:var(--analyze-purple);color:#fff;padding:12px 18px;border-radius:10px 0 0 10px;font-family:'Fredoka One',cursive;font-size:14px;min-width:120px;text-align:center;">4. Analyze</div>
-      <div style="flex:1;background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.2);border-radius:0 10px 10px 0;padding:10px 16px;font-size:14px;color:var(--muted);">value_counts, groupby, corr, filter → found survival patterns</div>
-    </div>
-    <div style="display:flex;gap:0;align-items:center;">
-      <div style="background:var(--viz-rose);color:#fff;padding:12px 18px;border-radius:10px 0 0 10px;font-family:'Fredoka One',cursive;font-size:14px;min-width:120px;text-align:center;">5. Insights</div>
-      <div style="flex:1;background:rgba(244,63,94,0.08);border:1px solid rgba(244,63,94,0.2);border-radius:0 10px 10px 0;padding:10px 16px;font-size:14px;color:var(--muted);">Women 74% vs men 19%. 1st class 63% vs 3rd class 24%. Data tells the story!</div>
-    </div>
-  </div>
-
-  <div style="background:rgba(0,0,0,0.3);border-radius:14px;padding:24px;margin:20px 0;">
-    <div style="font-family:'Fredoka One',cursive;font-size:18px;color:var(--viz-rose);margin-bottom:16px;text-align:center;">🏆 What We Discovered About the Titanic</div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;">
-      <div style="background:rgba(16,185,129,0.1);border:2px solid rgba(16,185,129,0.3);border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-family:'Fredoka One',cursive;font-size:28px;color:var(--clean-green);">38.4%</div>
-        <div style="font-size:13px;color:var(--muted);">Overall survival rate</div>
-      </div>
-      <div style="background:rgba(236,72,153,0.1);border:2px solid rgba(236,72,153,0.3);border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-family:'Fredoka One',cursive;font-size:28px;color:var(--analyze-pink);">74.2%</div>
-        <div style="font-size:13px;color:var(--muted);">Female survival</div>
-      </div>
-      <div style="background:rgba(248,81,73,0.1);border:2px solid rgba(248,81,73,0.3);border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-family:'Fredoka One',cursive;font-size:28px;color:#f85149;">18.9%</div>
-        <div style="font-size:13px;color:var(--muted);">Male survival</div>
-      </div>
-      <div style="background:rgba(59,130,246,0.1);border:2px solid rgba(59,130,246,0.3);border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-family:'Fredoka One',cursive;font-size:28px;color:var(--data-blue);">96.8%</div>
-        <div style="font-size:13px;color:var(--muted);">1st class women survived</div>
-      </div>
-      <div style="background:rgba(249,115,22,0.1);border:2px solid rgba(249,115,22,0.3);border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-family:'Fredoka One',cursive;font-size:28px;color:var(--load-orange);">13.5%</div>
-        <div style="font-size:13px;color:var(--muted);">3rd class men survived</div>
-      </div>
-      <div style="background:rgba(139,92,246,0.1);border:2px solid rgba(139,92,246,0.3);border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-family:'Fredoka One',cursive;font-size:28px;color:var(--analyze-purple);">0.543</div>
-        <div style="font-size:13px;color:var(--muted);">Sex correlation (strongest)</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="tip-box tip-box-viz">🚀 <strong>Next Steps:</strong> With this clean, analyzed dataset you could now build a <strong>Machine Learning model</strong> to predict survival! That's exactly what Kaggle competitors do — and you just completed the hardest part (data prep takes 80% of the work in real data science!).</div>
+  <div class="tip-box tip-box-cmp">🚀 <strong>Coming next:</strong> Random Forests — what if you grew 100 Decision Trees and let them all vote? That's the idea behind one of the most powerful and popular algorithms in all of ML!</div>
 </div>
 
 
 <!-- ╔══════════ QUIZ ══════════╗ -->
 <div class="section-divider div-quiz">
-  <div class="label">⚡ Final Knowledge Check</div>
+  <div class="label">🧠 Knowledge Check</div>
 </div>
 
 <div class="quiz-wrap">
   <div class="quiz-header">
-    <h2>Data Science Basics Quiz</h2>
-    <p>15 questions covering Datasets, CSV, Loading, Cleaning &amp; Analysis</p>
+    <h2>🧠 Quiz Time!</h2>
+    <p>15 questions covering Decision Trees &amp; KNN. Can you get a perfect score?</p>
   </div>
   <div class="quiz-scorebar">
     <div class="score-chip" id="scoreChip">0 / 15</div>
@@ -890,116 +752,165 @@ Their survival rate: 50.0%</div>
     <div class="final-score" id="finalScore"></div>
     <div class="final-stars" id="finalStars"></div>
     <div class="final-msg" id="finalMsg"></div>
+    <button class="btn btn-knn" onclick="buildQuiz()">🔄 Try Again</button>
   </div>
 </div>
 
-</div>
+</div><!-- end wrapper -->
 
 <script>
-/* ══════════ EXPLORE COMMANDS ══════════ */
-function showExplore(cmd){
-  const out=document.getElementById('exploreOutput');
-  const cmds={
-    head:{code:'df.head()',desc:'Shows first 5 rows — your first look at the actual data!',output:`   Survived  Pclass     Sex   Age  SibSp  Parch    Fare Embarked
-0         0       3    male  22.0      1      0   7.25        S
-1         1       1  female  38.0      1      0  71.28        C
-2         1       3  female  26.0      0      0   7.92        S
-3         1       1  female  35.0      1      0  53.10        S
-4         0       3    male  35.0      0      0   8.05        S`},
-    shape:{code:'df.shape',desc:'Returns (rows, columns) — how big is our dataset',output:`(891, 12)\n\n891 passengers, 12 features about each`},
-    dtypes:{code:'df.dtypes',desc:'Data type of each column — int, float, or object (text)',output:`PassengerId      int64\nSurvived         int64\nPclass           int64\nName            object  ← text!\nSex             object  ← text!\nAge            float64\nSibSp            int64\nParch            int64\nTicket          object  ← text!\nFare           float64\nCabin           object  ← text!\nEmbarked        object  ← text!`},
-    null:{code:'df.isnull().sum()',desc:'Count missing values per column — where is data incomplete?',output:`PassengerId      0\nSurvived         0\nPclass           0\nName             0\nSex              0\nAge            177   ← 😱 20% missing!\nSibSp            0\nParch            0\nTicket           0\nFare             0\nCabin          687   ← 😱 77% missing!\nEmbarked         2`},
-    value:{code:'df["Survived"].value_counts()',desc:'Count each unique value — how many survived vs died?',output:`0    549   ← Died (61.6%)\n1    342   ← Survived (38.4%)\n\nMost passengers did NOT survive.`},
-    unique:{code:'df["Embarked"].unique()',desc:'Show all unique values in a column',output:`['S' 'C' 'Q' nan]\n\nS = Southampton (UK) — most common\nC = Cherbourg (France)\nQ = Queenstown (Ireland)\nnan = 2 passengers have no port listed`}
-  };
-  const c=cmds[cmd];
-  out.innerHTML=`<div class="result-box" style="border-color:var(--load-orange);">
-    <div style="background:var(--load-orange);color:#000;padding:8px 12px;border-radius:8px;margin-bottom:8px;font-weight:700;font-size:14px;">Python Code:</div>
-    <div class="code-line" style="font-size:14px;">${c.code}</div>
-    <div style="font-size:14px;color:var(--muted);margin:8px 0;padding:0 4px;">${c.desc}</div>
-    <div style="background:var(--clean-green);color:#000;padding:8px 12px;border-radius:8px;margin:12px 0 8px;font-weight:700;font-size:14px;">Output:</div>
-    <div class="output-console" style="font-size:12px;">${c.output}</div>
+/* ══════════ DT Interactive ══════════ */
+let dtEmployed = true;
+function setEmp(v){
+  dtEmployed = v;
+  document.getElementById('dtEmpYes').style.borderColor = v ? 'rgba(34,197,94,0.5)' : 'rgba(255,255,255,0.15)';
+  document.getElementById('dtEmpYes').style.background = v ? 'rgba(34,197,94,0.15)' : 'transparent';
+  document.getElementById('dtEmpYes').style.color = v ? 'var(--dt-green)' : 'var(--muted)';
+  document.getElementById('dtEmpNo').style.borderColor = !v ? 'rgba(244,63,94,0.5)' : 'rgba(255,255,255,0.15)';
+  document.getElementById('dtEmpNo').style.background = !v ? 'rgba(244,63,94,0.15)' : 'transparent';
+  document.getElementById('dtEmpNo').style.color = !v ? 'var(--err-rose)' : 'var(--muted)';
+}
+document.getElementById('dtAge').addEventListener('input', function(){
+  document.getElementById('dtAgeVal').textContent = this.value;
+});
+document.getElementById('dtDebt').addEventListener('input', function(){
+  document.getElementById('dtDebtVal').textContent = parseFloat(this.value).toFixed(1);
+});
+
+function runDT(){
+  const age = parseInt(document.getElementById('dtAge').value);
+  const debt = parseFloat(document.getElementById('dtDebt').value);
+  const emp = dtEmployed;
+  const out = document.getElementById('dtOutput');
+
+  // Simulate a simple DT
+  let steps = [];
+  let decision, reason, emoji;
+
+  steps.push({ q: `Root Node: Age ≤ 30?`, ans: age <= 30 ? 'Yes (age = ' + age + ')' : 'No (age = ' + age + ')', path: age <= 30 ? 'left' : 'right' });
+
+  if(age <= 30){
+    steps.push({ q: `Node: Monthly debt ≤ ₹2k?`, ans: debt <= 2 ? 'Yes (debt = ₹' + debt.toFixed(1) + 'k)' : 'No (debt = ₹' + debt.toFixed(1) + 'k)', path: debt <= 2 ? 'left' : 'right' });
+    if(debt <= 2){ decision = true; reason = 'Young applicant with low debt — great profile!'; emoji = '🎉'; }
+    else { decision = false; reason = 'Young but high debt — risky'; emoji = '😬'; }
+  } else {
+    steps.push({ q: `Node: Employed?`, ans: emp ? 'Yes ✅' : 'No ❌', path: emp ? 'left' : 'right' });
+    if(emp){ decision = true; reason = 'Older applicant with stable employment — approved!'; emoji = '✅'; }
+    else { decision = false; reason = 'Older and unemployed — high risk'; emoji = '🚫'; }
+  }
+
+  out.innerHTML = `<div class="result-box" style="margin-top:16px;border-color:${decision?'var(--dt-green)':'var(--err-rose)'};">
+    <div style="font-family:'Fredoka One',cursive;color:var(--muted);font-size:12px;margin-bottom:14px;letter-spacing:2px;">DECISION PATH</div>
+    ${steps.map((s,i) => `
+      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;">
+        <div style="min-width:24px;height:24px;border-radius:50%;background:rgba(34,197,94,0.2);color:var(--dt-green);font-family:'Fira Code',monospace;font-size:11px;display:flex;align-items:center;justify-content:center;">${i+1}</div>
+        <div>
+          <div style="font-family:'Fira Code',monospace;font-size:12px;color:var(--muted);">${s.q}</div>
+          <div style="font-family:'Fira Code',monospace;font-size:13px;color:#fff;margin-top:2px;">→ ${s.ans}</div>
+        </div>
+      </div>
+    `).join('')}
+    <div style="text-align:center;margin-top:16px;padding:16px;background:rgba(0,0,0,0.3);border-radius:10px;">
+      <div style="font-size:36px;">${emoji}</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:24px;color:${decision?'var(--dt-green)':'var(--err-rose)'};margin:8px 0;">Loan ${decision?'APPROVED ✅':'REJECTED ❌'}</div>
+      <div style="font-size:14px;color:var(--muted);">${reason}</div>
+    </div>
   </div>`;
 }
+setEmp(true);
 
-/* ══════════ CLEANING STEPS ══════════ */
-function showClean(step){
-  const out=document.getElementById('cleanOutput');
-  const steps={
-    missing:{title:'Check Missing Values',code:'df.isnull().sum()',output:'Age        177  (19.9% missing)\nCabin      687  (77.1% missing!)\nEmbarked     2  (0.2% missing)\n\nEverything else: 0 missing ✅',note:'Three columns need fixing. Age has 20% missing, Cabin has 77% missing (too much!), Embarked has only 2 missing.'},
-    fillage:{title:'Fill Age with Median',code:'df["Age"].fillna(df["Age"].median(), inplace=True)\nprint("Age median:", df["Age"].median())  # 28.0\nprint("Age missing now:", df["Age"].isnull().sum())',output:'Age median: 28.0\nAge missing now: 0  ✅',note:'Why median (28) instead of mean (29.7)? Median isn\'t affected by that 80-year-old outlier. It\'s a safer central value.'},
-    dropcabin:{title:'Drop Cabin Column',code:'df.drop("Cabin", axis=1, inplace=True)\nprint("Columns:", len(df.columns))  # 11 → 10',output:'Columns: 11 (was 12)\nCabin column removed! ✅',note:'77% missing = unsalvageable. If we tried to fill 687 values, we\'d be making up data. Better to drop it entirely.'},
-    encode:{title:'Encode Text → Numbers',code:'df["Sex"] = df["Sex"].map({"male": 0, "female": 1})\ndf = pd.get_dummies(df, columns=["Embarked"], drop_first=True)',output:'Sex: male→0, female→1\nEmbarked → Embarked_Q (0/1), Embarked_S (0/1)\n\nAll text columns now numeric! ✅',note:'ML models can\'t read text. map() works for 2 categories. get_dummies() (one-hot encoding) works for 3+ categories.'},
-    final:{title:'Final Validation',code:'print(df.isnull().sum().sum())  # Total missing\nprint(df.shape)\nprint(df.dtypes)',output:'Total missing values: 0 ✅\nShape: (891, 9)\nAll dtypes: int64 or float64 ✅\n\n🎉 DATA IS CLEAN AND READY!',note:'From 12 messy columns to 9 clean, all-numeric columns. Zero missing values. This data is now ready for analysis and ML!'}
-  };
-  const s=steps[step];
-  out.innerHTML=`<div class="result-box" style="border-color:var(--clean-green);">
-    <div style="font-family:'Fredoka One',cursive;font-size:18px;color:var(--clean-green);margin-bottom:10px;">🧹 ${s.title}</div>
-    <div class="code-line" style="font-size:13px;">${s.code}</div>
-    <div class="output-console" style="font-size:12px;">${s.output}</div>
-    <div style="margin-top:12px;padding:10px 14px;background:rgba(16,185,129,0.06);border-radius:8px;font-size:14px;color:var(--muted);">💡 ${s.note}</div>
-  </div>`;
+/* ══════════ KNN Interactive ══════════ */
+let currentK = 3;
+// Simulated flower data: [petal, sepal, class] class: 0=setosa, 1=versicolor, 2=virginica
+const flowers = [
+  [1.4,3.5,0],[1.3,3.0,0],[1.5,3.2,0],[1.4,3.1,0],[1.7,3.6,0],[1.0,3.4,0],[1.6,3.9,0],[1.2,3.4,0],[1.5,3.0,0],[1.3,3.5,0],
+  [4.2,3.0,1],[4.5,3.2,1],[4.0,2.9,1],[4.7,3.1,1],[3.9,2.8,1],[4.3,2.7,1],[4.6,3.3,1],[4.1,3.0,1],[4.4,2.5,1],[3.8,3.1,1],
+  [5.9,3.0,2],[5.6,2.8,2],[6.1,3.3,2],[5.8,2.7,2],[6.3,3.0,2],[5.5,2.6,2],[6.0,2.9,2],[5.7,3.1,2],[6.4,3.2,2],[5.4,2.8,2]
+];
+const speciesNames = ['🌸 Setosa', '🌺 Versicolor', '🌻 Virginica'];
+const speciesColors = ['#22c55e', '#f59e0b', '#a855f7'];
+
+function setK(k){
+  currentK = k;
+  document.querySelectorAll('.k-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.textContent.split('=')[1]) === k);
+  });
 }
 
-/* ══════════ ASK THE DATA ══════════ */
-function askData(q){
-  const out=document.getElementById('analyzeOutput');
-  const qs={
-    overall:{title:'Overall Survival Rate',code:'print(df["Survived"].value_counts())\nprint(f"Rate: {df[\'Survived\'].mean()*100:.1f}%")',output:'Died:     549 (61.6%)\nSurvived: 342 (38.4%)\n\nMost passengers did NOT survive the Titanic.',visual:`<div style="display:flex;gap:3px;height:40px;border-radius:8px;overflow:hidden;margin-top:12px;">
-      <div style="flex:61.6;background:#f85149;display:flex;align-items:center;justify-content:center;font-family:'Fira Code',monospace;font-size:12px;color:#fff;">Died 61.6%</div>
-      <div style="flex:38.4;background:var(--clean-green);display:flex;align-items:center;justify-content:center;font-family:'Fira Code',monospace;font-size:12px;color:#fff;">Survived 38.4%</div></div>`},
-    gender:{title:'Survival by Gender',code:'df.groupby("Sex")["Survived"].mean() * 100',output:'Male (0):   18.9% survived\nFemale (1): 74.2% survived\n\n"Women and children first!" — confirmed by data.',visual:`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;">
-      <div style="background:rgba(248,81,73,0.1);border:2px solid rgba(248,81,73,0.3);border-radius:8px;padding:12px;text-align:center;">
-        <div style="font-size:12px;color:var(--muted);">Male</div><div style="font-family:'Fredoka One',cursive;font-size:28px;color:#f85149;">18.9%</div></div>
-      <div style="background:rgba(16,185,129,0.1);border:2px solid rgba(16,185,129,0.3);border-radius:8px;padding:12px;text-align:center;">
-        <div style="font-size:12px;color:var(--muted);">Female</div><div style="font-family:'Fredoka One',cursive;font-size:28px;color:var(--clean-green);">74.2%</div></div></div>`},
-    class:{title:'Survival by Ticket Class',code:'df.groupby("Pclass")["Survived"].mean() * 100',output:'1st Class: 63.0% survived\n2nd Class: 47.3% survived\n3rd Class: 24.2% survived\n\nWealth = access to lifeboats.',visual:`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px;">
-      <div style="background:rgba(16,185,129,0.1);border:2px solid rgba(16,185,129,0.3);border-radius:8px;padding:12px;text-align:center;">
-        <div style="font-size:12px;color:var(--muted);">1st Class</div><div style="font-family:'Fredoka One',cursive;font-size:24px;color:var(--clean-green);">63.0%</div></div>
-      <div style="background:rgba(249,115,22,0.1);border:2px solid rgba(249,115,22,0.3);border-radius:8px;padding:12px;text-align:center;">
-        <div style="font-size:12px;color:var(--muted);">2nd Class</div><div style="font-family:'Fredoka One',cursive;font-size:24px;color:var(--load-orange);">47.3%</div></div>
-      <div style="background:rgba(248,81,73,0.1);border:2px solid rgba(248,81,73,0.3);border-radius:8px;padding:12px;text-align:center;">
-        <div style="font-size:12px;color:var(--muted);">3rd Class</div><div style="font-family:'Fredoka One',cursive;font-size:24px;color:#f85149;">24.2%</div></div></div>`},
-    age:{title:'Survival by Age Group',code:'df["AgeGroup"] = pd.cut(df["Age"], bins=[0,12,18,35,60,100],\n  labels=["Child","Teen","Young Adult","Adult","Senior"])\ndf.groupby("AgeGroup")["Survived"].mean()*100',output:'Child (0-12):       58.8% ← Kids had best odds!\nTeen (13-18):       40.3%\nYoung Adult (19-35): 35.8%\nAdult (36-60):       39.0%\nSenior (60+):        26.8% ← Elderly had worst odds',visual:`<div style="display:flex;gap:4px;margin-top:12px;height:30px;border-radius:6px;overflow:hidden;">
-      <div style="flex:58.8;background:var(--clean-green);display:flex;align-items:center;justify-content:center;font-size:10px;color:#000;font-weight:700;">Child 59%</div>
-      <div style="flex:40.3;background:rgba(16,185,129,0.5);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;">Teen 40%</div>
-      <div style="flex:35.8;background:var(--load-orange);display:flex;align-items:center;justify-content:center;font-size:10px;color:#000;font-weight:700;">YA 36%</div>
-      <div style="flex:39;background:rgba(249,115,22,0.6);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;">Adult 39%</div>
-      <div style="flex:26.8;background:#f85149;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;">Senior 27%</div></div>`},
-    family:{title:'Survival by Family Size',code:'df["FamilySize"] = df["SibSp"] + df["Parch"] + 1\ndf.groupby("FamilySize")["Survived"].mean()*100',output:'Alone (1):     30.4% ← Traveling alone = worst\nSmall (2-4):   ~55%  ← Small families = best!\nLarge (5+):    ~16%  ← Large families = very bad\n\nSweet spot: 2-4 person families survived most!',visual:''},
-    fare:{title:'Survival by Fare Range',code:'df["FareGroup"] = pd.cut(df["Fare"],\n  bins=[0,10,30,100,600],\n  labels=["Budget","Economy","Business","Luxury"])\ndf.groupby("FareGroup")["Survived"].mean()*100',output:'Budget (₹0-10):     20.3%\nEconomy (₹10-30):   41.0%\nBusiness (₹30-100): 57.5%\nLuxury (₹100+):     73.5%\n\nMore money = more survival. Harsh reality.',visual:`<div style="display:flex;gap:4px;margin-top:12px;height:30px;border-radius:6px;overflow:hidden;">
-      <div style="flex:1;background:#f85149;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;">Budget 20%</div>
-      <div style="flex:1;background:var(--load-orange);display:flex;align-items:center;justify-content:center;font-size:10px;color:#000;font-weight:700;">Economy 41%</div>
-      <div style="flex:1;background:rgba(16,185,129,0.6);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;">Business 58%</div>
-      <div style="flex:1;background:var(--clean-green);display:flex;align-items:center;justify-content:center;font-size:10px;color:#000;font-weight:700;">Luxury 74%</div></div>`}
-  };
-  const a=qs[q];
-  out.innerHTML=`<div class="result-box" style="border-color:var(--analyze-purple);">
-    <div style="font-family:'Fredoka One',cursive;font-size:18px;color:var(--analyze-purple);margin-bottom:10px;">🔍 ${a.title}</div>
-    <div class="code-line" style="font-size:13px;">${a.code}</div>
-    <div class="output-console" style="font-size:12px;">${a.output}</div>
-    ${a.visual}
+document.getElementById('knnPetal').addEventListener('input', function(){
+  document.getElementById('knnPetalVal').textContent = parseFloat(this.value).toFixed(1);
+});
+document.getElementById('knnSepal').addEventListener('input', function(){
+  document.getElementById('knnSepalVal').textContent = parseFloat(this.value).toFixed(1);
+});
+
+function runKNN(){
+  const petal = parseFloat(document.getElementById('knnPetal').value);
+  const sepal = parseFloat(document.getElementById('knnSepal').value);
+  const k = currentK;
+
+  // Calculate distances
+  const dists = flowers.map(f => ({
+    petal: f[0], sepal: f[1], cls: f[2],
+    dist: Math.sqrt(Math.pow(petal - f[0], 2) + Math.pow(sepal - f[1], 2))
+  }));
+  dists.sort((a,b) => a.dist - b.dist);
+  const neighbours = dists.slice(0, k);
+
+  // Vote
+  const votes = [0,0,0];
+  neighbours.forEach(n => votes[n.cls]++);
+  const predicted = votes.indexOf(Math.max(...votes));
+
+  const out = document.getElementById('knnOutput');
+  out.innerHTML = `<div class="result-box" style="margin-top:16px;border-color:${speciesColors[predicted]};">
+    <div style="font-family:'Fredoka One',cursive;color:var(--muted);font-size:12px;margin-bottom:14px;letter-spacing:2px;">TOP ${k} NEAREST NEIGHBOURS</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-bottom:16px;">
+      ${neighbours.map((n,i) => `
+        <div style="background:rgba(0,0,0,0.3);border:1px solid ${speciesColors[n.cls]}40;border-radius:8px;padding:10px;text-align:center;">
+          <div style="font-size:10px;color:var(--muted);font-family:'Fira Code',monospace;">#${i+1} NEIGHBOUR</div>
+          <div style="color:${speciesColors[n.cls]};font-family:'Fredoka One',cursive;font-size:13px;margin:4px 0;">${speciesNames[n.cls]}</div>
+          <div style="font-size:11px;color:var(--muted);">petal=${n.petal} sepal=${n.sepal}</div>
+          <div style="font-size:11px;color:#fff;">dist = ${n.dist.toFixed(2)}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div style="background:rgba(0,0,0,0.3);border-radius:8px;padding:12px;margin-bottom:14px;">
+      <div style="font-family:'Fira Code',monospace;font-size:12px;color:var(--muted);margin-bottom:8px;">VOTE TALLY:</div>
+      ${votes.map((v,i) => `
+        <div style="display:flex;align-items:center;gap:10px;margin:6px 0;">
+          <div style="min-width:100px;font-family:'Fira Code',monospace;font-size:12px;color:${speciesColors[i]};">${speciesNames[i]}</div>
+          <div style="flex:1;height:16px;background:rgba(255,255,255,0.05);border-radius:4px;overflow:hidden;">
+            <div style="height:100%;width:${v/k*100}%;background:${speciesColors[i]};border-radius:4px;transition:width 0.5s;"></div>
+          </div>
+          <div style="font-family:'Fredoka One',cursive;font-size:15px;color:${speciesColors[i]};min-width:20px;">${v}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div style="text-align:center;padding:14px;background:rgba(0,0,0,0.2);border-radius:10px;">
+      <div style="font-family:'Fredoka One',cursive;font-size:22px;color:${speciesColors[predicted]};">Prediction: ${speciesNames[predicted]}</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:6px;">${votes[predicted]} out of ${k} neighbours voted for this class</div>
+    </div>
   </div>`;
 }
-
 
 /* ══════════ QUIZ ══════════ */
 const QS=[
-  {q:'What does CSV stand for?',opts:['Computer Saved Values','Comma-Separated Values','Code System Variables','Column-Sorted Values'],ans:1,explain:'CSV = Comma-Separated Values — plain text file with commas between each value!'},
-  {q:'Which Pandas function loads a CSV file?',opts:['pd.load_csv()','pd.open_csv()','pd.read_csv()','pd.import_csv()'],ans:2,explain:'pd.read_csv("filename.csv") loads a CSV file into a DataFrame!'},
-  {q:'What does df.shape return?',opts:['Column names','(rows, columns)','Data types','First 5 rows'],ans:1,explain:'df.shape returns a tuple like (891, 12) — the number of rows and columns!'},
-  {q:'What does df.head() show?',opts:['Last 5 rows','All rows','First 5 rows','Column names only'],ans:2,explain:'df.head() shows the first 5 rows — your first look at the actual data!'},
-  {q:'What does NaN mean in a dataset?',opts:['Not a Number (missing data)','Negative and Null','New and Nice','No answer needed'],ans:0,explain:'NaN = Not a Number — Python\'s way of representing missing data!'},
-  {q:'In the Titanic dataset, what does Survived=1 mean?',opts:['Died','Survived','Unknown','First class'],ans:1,explain:'Survived=1 means the passenger survived, Survived=0 means they did not.'},
-  {q:'If 77% of a column is missing, you should:',opts:['Fill with mean','Fill with 0','Drop the column','Ignore it'],ans:2,explain:'If >50% of a column is missing, it\'s usually better to drop it entirely rather than make up data!'},
-  {q:'Why use median instead of mean to fill missing Age?',opts:['Median is faster','Median isn\'t affected by outliers','Median is always bigger','No reason'],ans:1,explain:'Median is resistant to outliers. The 80-year-old would skew the mean but not the median!'},
-  {q:'What does df.isnull().sum() do?',opts:['Counts total rows','Counts missing values per column','Sums all values','Checks for duplicates'],ans:1,explain:'isnull() marks True where data is missing, then sum() counts the Trues per column!'},
-  {q:'What does df.describe() show?',opts:['Only column names','Count, mean, std, min, max, quartiles','Just the mean','Data types'],ans:1,explain:'describe() gives you a full statistical summary — count, mean, std, min, 25%, 50%, 75%, max!'},
-  {q:'What Titanic survival rate did women have?',opts:['18.9%','38.4%','74.2%','96.8%'],ans:2,explain:'Women had a 74.2% survival rate vs men at 18.9% — "women and children first!"'},
-  {q:'What does groupby() do?',opts:['Groups data and applies functions per group','Sorts the data','Removes groups','Creates new columns'],ans:0,explain:'groupby() splits data into groups, applies a function (like mean), and combines results!'},
-  {q:'Correlation of 0.543 between Sex and Survived means:',opts:['No relationship','Weak negative','Moderate positive — being female helped survival','Perfect correlation'],ans:2,explain:'0.543 is a moderate positive correlation — the strongest predictor of survival was being female!'},
-  {q:'pd.get_dummies() is used for:',opts:['Creating dummy data','One-hot encoding categories','Removing columns','Filling missing values'],ans:1,explain:'get_dummies() converts categorical columns (like "S","C","Q") into separate 0/1 columns — one-hot encoding!'},
-  {q:'Which class had the highest survival rate?',opts:['3rd class','2nd class','1st class','All were equal'],ans:2,explain:'1st class had 63% survival, 2nd had 47%, 3rd had only 24%. Wealth = access to lifeboats!'}
+  {q:'A Decision Tree splits data using:',opts:['Random coin flips','Yes/No questions on features','Linear equations','Probability scores'],ans:1,explain:'Decision Trees split by asking yes/no questions on features. At each node, it finds the question that separates the data most cleanly.'},
+  {q:'What does Gini Impurity measure?',opts:['The depth of the tree','How mixed (impure) a group of labels is','The number of features','The training accuracy'],ans:1,explain:'Gini Impurity measures how mixed a group is. Gini=0 means perfectly pure (all one class). Gini=0.5 is maximum mess (50/50 split).'},
+  {q:'What is a Leaf Node in a Decision Tree?',opts:['The first node at the top','A node that asks another question','A terminal node — it makes a final prediction','The node with the best Gini score'],ans:2,explain:'A Leaf Node is a terminal node — no more questions are asked. It outputs the final prediction. Sometimes called a terminal node.'},
+  {q:'What is the biggest risk when max_depth is not limited?',opts:['Underfitting','Overfitting — memorising training data','Slow training','Wrong feature importance'],ans:1,explain:'Without max_depth, the tree grows until it memorises every single training point, including noise. This is overfitting — it fails on new data.'},
+  {q:'How do you read Decision Tree feature importances?',opts:['Higher value = less important','Higher value = more important','They are always equal','They only apply to regression'],ans:1,explain:'Feature importance shows what fraction of decision quality came from each feature. Higher = that feature was used more to split the data cleanly.'},
+  {q:'What does "lazy learner" mean for KNN?',opts:['It makes poor predictions','It does no computation during training — stores data and works at prediction time','It needs many features to work','It is slower to train than other algorithms'],ans:1,explain:'KNN is lazy because it skips training entirely. It just stores all data. The real work (distance calculation + voting) happens only when you call .predict().'},
+  {q:'KNN classifies a new point by:',opts:['Training a new model each time','Finding K nearest neighbours and taking a majority vote','Drawing a decision boundary line','Computing the probability using sigmoid'],ans:1,explain:'KNN finds the K nearest training points (by distance), checks what class most of them belong to, and assigns that class to the new point.'},
+  {q:'Why MUST you scale features before using KNN?',opts:['sklearn requires it','Features with large ranges will dominate the distance calculation','It speeds up training','It improves Gini impurity'],ans:1,explain:'If salary is in thousands and age in tens, distance will be dominated by salary differences. Scaling (e.g. StandardScaler) puts all features on equal footing.'},
+  {q:'What happens when K = 1 in KNN?',opts:['Underfitting — ignores most data','Overfitting — memorises every training point','Perfect accuracy always','The model picks randomly'],ans:1,explain:'K=1 means "copy your single nearest neighbour." This memorises training data perfectly but fails on new points — a classic overfitting scenario.'},
+  {q:'For binary classification with KNN, why prefer odd K values?',opts:['Odd K trains faster','Odd K avoids tie votes between classes','Odd K uses less memory','sklearn only accepts odd K'],ans:1,explain:'With two classes, an even K can result in a 50/50 tie (2 class A, 2 class B with K=4). Odd K like 3 or 5 guarantees a clear majority winner.'},
+  {q:'Which algorithm needs NO feature scaling?',opts:['KNN','Both need scaling','Decision Trees (splits are threshold-based, not distance-based)','Neither'],ans:2,explain:'Decision Trees split based on thresholds like "Age > 30" — the actual scale doesn\'t matter, just the ordering. KNN uses distance, so it critically needs scaling.'},
+  {q:'You want to explain your model to a non-technical manager. Which algorithm is best?',opts:['KNN (say nearest neighbours)','Decision Tree (show them the actual flowchart!)','Both are equally explainable','Neither is explainable'],ans:1,explain:'You can literally print a Decision Tree and walk through the branches. Managers love it. KNN\'s "nearest neighbours in high-dimensional space" is much harder to explain.'},
+  {q:'What sklearn class finds the best K automatically using cross-validation?',opts:['KBestSelector','GridSearchCV','AutoKNN','BestK'],ans:1,explain:'GridSearchCV tests many hyperparameter combinations (including different K values) using cross-validation and picks the best one. It works for any sklearn estimator.'},
+  {q:'Decision Trees can be used for:',opts:['Only classification','Only regression','Both classification AND regression','Only binary problems'],ans:2,explain:'sklearn has both DecisionTreeClassifier and DecisionTreeRegressor. The same idea (splitting on thresholds) works for both tasks. Similarly, KNeighborsRegressor exists too.'},
+  {q:'The sklearn 3-step pattern (fit → predict → score) works for:',opts:['Only Linear/Logistic Regression','Only Decision Trees','All 4 algorithms you have learned so far','Only sklearn version 1.0+'],ans:2,explain:'fit() → predict() → score() works identically for Linear Regression, Logistic Regression, Decision Trees, AND KNN. That\'s the beauty of sklearn\'s API — learn once, use everywhere!'}
 ];
 
 let correct=0,answered=0;
@@ -1013,9 +924,7 @@ function buildQuiz(){
     const card=document.createElement('div');card.className='qcard';card.id='qcard'+qi;
     card.innerHTML=`<div class="qnum">QUESTION ${qi+1} OF ${QS.length}</div>
       <div class="qtext">${q.q}</div>
-      <div class="opts" id="opts${qi}">
-        ${q.opts.map((o,oi)=>`<button class="opt" onclick="answer(${qi},${oi})">${String.fromCharCode(65+oi)}. ${o}</button>`).join('')}
-      </div>
+      <div class="opts" id="opts${qi}">${q.opts.map((o,oi)=>`<button class="opt" onclick="answer(${qi},${oi})">${String.fromCharCode(65+oi)}. ${o}</button>`).join('')}</div>
       <div class="feedback" id="fb${qi}"></div>`;
     body.appendChild(card);
   });
@@ -1038,9 +947,9 @@ function answer(qi,chosen){
 function showFinal(){
   const fb=document.getElementById('finalBox'),fs=document.getElementById('finalScore'),fst=document.getElementById('finalStars'),fm=document.getElementById('finalMsg');
   fs.textContent=`${correct} / ${QS.length}`;
-  if(correct===QS.length){fs.className='final-score perfect';fst.textContent='⭐⭐⭐';fm.textContent='PERFECT SCORE!\nData Scientist in the Making!\nYou mastered the full pipeline! 🚢';}
-  else if(correct>=12){fs.className='final-score great';fst.textContent='⭐⭐';fm.textContent='EXCELLENT WORK!\nYou can load, clean & analyze data!\nReady for ML!';}
-  else{fs.className='final-score okish';fst.textContent='⭐';fm.textContent='GOOD START!\nReview the Titanic walkthrough\nand try the interactives again!';}
+  if(correct===QS.length){fs.className='final-score perfect';fst.textContent='⭐⭐⭐';fm.textContent='PERFECT SCORE!\nYou mastered Decision Trees & KNN!\nNext stop: Random Forests 🌲🌲🌲';}
+  else if(correct>=12){fs.className='final-score great';fst.textContent='⭐⭐';fm.textContent='EXCELLENT WORK!\nYou understand both algorithms well!\nReview the missed ones and you are solid!';}
+  else{fs.className='final-score okish';fst.textContent='⭐';fm.textContent='GOOD START!\nReview Gini Impurity for Decision Trees\nand why feature scaling matters for KNN!';}
   fb.classList.add('show');
 }
 buildQuiz();
